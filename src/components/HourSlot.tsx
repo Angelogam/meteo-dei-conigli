@@ -1,71 +1,70 @@
 import { ProcessedHourData } from "@/types/weather";
-import { WindArrow } from "./WindArrow";
-import { ThermalBar } from "./ThermalBar";
-import { TurbulenceIcon } from "./TurbulenceIcon";
-import { QualityBadge } from "./QualityBadge";
-import { formatHour, getQualityColor } from "@/utils/weatherCalculations";
-import { Cloud, Thermometer, Droplets } from "lucide-react";
+import { getQualityColor } from "@/utils/weatherCalculations";
+import { useEffect, useState } from "react";
 
 interface HourSlotProps {
   data: ProcessedHourData;
-  index?: number;
-  visible?: boolean;
+  index: number;
+  visible: boolean;
 }
 
-export function HourSlot({ data, index = 0, visible = true }: HourSlotProps) {
+export function HourSlot({ data, index, visible }: HourSlotProps) {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    if (visible) {
+      const timeout = setTimeout(() => setMounted(true), index * 60);
+      return () => clearTimeout(timeout);
+    }
+  }, [visible, index]);
+
+  const color = getQualityColor(data.qualityScore);
+
   return (
     <div
       className={`
-        flex-shrink-0 w-[136px] rounded-2xl border border-white/[0.06] bg-[#121212]
-        p-3.5 transition-all duration-500 ease-out
-        hover:border-white/12 hover:bg-[#181818]
-        ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-3"}
+        shrink-0 w-[140px] p-3 rounded-xl border transition-all duration-500
+        ${mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}
+        bg-[#181818] border-[#252525] hover:border-[#333] hover:bg-[#1E1E1E]
       `}
-      style={{ transitionDelay: `${index * 60}ms` }}
     >
-      {/* Ora */}
-      <div className="text-center mb-2.5">
-        <div className="text-sm font-bold text-white/70 font-mono tracking-tight">
-          {formatHour(data.hour)}
+      <div className="flex items-center justify-between mb-2">
+        <span className="text-sm font-bold text-white font-mono">
+          {String(data.hour).padStart(2, '0')}:00
+        </span>
+        <div
+          className="w-7 h-7 rounded-lg flex items-center justify-center text-[10px] font-bold"
+          style={{ backgroundColor: `${color}15`, color }}
+        >
+          {data.qualityScore}
         </div>
       </div>
 
-      {/* Temp + Umidità */}
-      <div className="flex items-center justify-center gap-3 mb-2.5 text-[11px] text-white/60">
-        <div className="flex items-center gap-1">
-          <Thermometer size={11} color="#FF9F1C" />
-          <span className="font-semibold">{data.temp.toFixed(0)}°</span>
+      <div className="space-y-1.5">
+        <div className="flex justify-between text-[11px]">
+          <span className="text-white/40">Vento</span>
+          <span className="font-semibold text-[#4DA3FF]">{data.windSpeed10m.toFixed(0)} km/h</span>
         </div>
-        <div className="flex items-center gap-1">
-          <Droplets size={11} color="#4DA3FF" />
-          <span>{data.humidity.toFixed(0)}%</span>
+        <div className="flex justify-between text-[11px]">
+          <span className="text-white/40">Termiche</span>
+          <span className="font-semibold text-[#FFC857]">{data.thermalStrength.toFixed(1)} m/s</span>
+        </div>
+        <div className="flex justify-between text-[11px]">
+          <span className="text-white/40">Temp</span>
+          <span className="font-semibold text-white/70">{data.temp.toFixed(0)}°C</span>
+        </div>
+        <div className="flex justify-between text-[11px]">
+          <span className="text-white/40">Nuvole</span>
+          <span className="font-semibold text-white/70">{data.cloudCover.toFixed(0)}%</span>
         </div>
       </div>
 
-      {/* Nuvolosità */}
-      <div className="flex items-center justify-center gap-1 mb-2.5 text-[11px] text-white/50">
-        <Cloud size={11} color="white" opacity={0.3} />
-        <span>{data.cloudCover.toFixed(0)}% nuvole</span>
-      </div>
-
-      {/* Separatore */}
-      <div className="border-t border-white/[0.04] my-2" />
-
-      {/* Vento */}
-      <div className="flex justify-center mb-2">
-        <WindArrow direction={data.windDirection10m} speed={data.windSpeed10m} size="sm" showSpeed={true} />
-      </div>
-
-      {/* Termiche + Turbolenza in riga */}
-      <div className="flex items-center justify-center gap-4 mb-2.5">
-        <ThermalBar strength={data.thermalStrength} force={data.thermalForce} height={44} />
-        <div className="w-px h-10 bg-white/[0.04]" />
-        <TurbulenceIcon level={data.turbulence} size={14} />
-      </div>
-
-      {/* Punteggio */}
-      <div className="flex justify-center mt-1">
-        <QualityBadge score={data.qualityScore} size="sm" showLabel={false} />
+      {/* Mini barra qualità */}
+      <div className="mt-2 h-1 rounded-full bg-white/[0.04] overflow-hidden">
+        <div
+          className="h-full rounded-full transition-all duration-700"
+          style={{ width: `${(data.qualityScore / 5) * 100}%`, backgroundColor: color }}
+        />
       </div>
     </div>
   );

@@ -2,7 +2,7 @@ import { useState, useMemo } from "react";
 import { useWeatherData } from "@/hooks/useWeatherData";
 import { Header } from "@/components/Header";
 import { SiteCard } from "@/components/SiteCard";
-import { SiteDetail } from "@/components/SiteDetail";
+import { DayTabs } from "@/components/DayTabs";
 import { launchSites } from "@/data/launchSites";
 import { Search, Loader2, AlertCircle, Compass } from "lucide-react";
 
@@ -14,8 +14,6 @@ export default function Index() {
     selectedForecast,
     loading,
     error,
-    lastUpdated,
-    refresh,
   } = useWeatherData();
 
   const [searchQuery, setSearchQuery] = useState("");
@@ -28,20 +26,6 @@ export default function Index() {
   }, [allForecasts, searchQuery]);
 
   const migliori = allForecasts.filter((f) => f.overallScore >= 4).length;
-
-  // Vista dettaglio
-  if (selectedForecast) {
-    return (
-      <div className="min-h-screen bg-[#0A0A0A]">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6">
-          <SiteDetail
-            forecast={selectedForecast}
-            onBack={() => setSelectedSite(null)}
-          />
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-[#0A0A0A]">
@@ -62,9 +46,7 @@ export default function Index() {
               <span><strong className="text-white/70">{migliori}</strong> con punteggio ≥ 4.0</span>
             </div>
             <div className="w-1 h-1 rounded-full bg-white/20" />
-            <div className="flex items-center gap-1.5">
-              <span className="text-white/40">3 giorni di previsioni</span>
-            </div>
+            <span>3 giorni di previsioni</span>
           </div>
         )}
 
@@ -98,21 +80,30 @@ export default function Index() {
           </div>
         )}
 
-        {/* Site cards list */}
+        {/* Site cards */}
         {!loading && sortedForecasts.length > 0 && (
           <div className="space-y-3">
             {sortedForecasts.map((f, i) => (
               <SiteCard
                 key={f.siteId}
                 forecast={f}
-                isActive={false}
+                isActive={f.siteId === selectedSite?.id}
                 onClick={() => {
                   const site = launchSites.find((s) => s.id === f.siteId);
-                  if (site) setSelectedSite(site);
+                  if (site) {
+                    setSelectedSite(site);
+                  }
                 }}
                 index={i}
               />
             ))}
+          </div>
+        )}
+
+        {/* Dettaglio decollo selezionato */}
+        {selectedForecast && selectedSite && (
+          <div className="mt-6 animate-scale-in">
+            <DayTabs days={selectedForecast.days} />
           </div>
         )}
 
@@ -132,7 +123,6 @@ export default function Index() {
           <div className="mt-10 pt-4 border-t border-[#252525] text-center animate-fade-in" style={{ animationDelay: "500ms" }}>
             <p className="text-xs text-white/25">
               Dati forniti da Open-Meteo · Aggiornamento ogni 3 ore
-              {lastUpdated && ` · Ultimo aggiornamento: ${lastUpdated.toLocaleTimeString("it-IT")}`}
             </p>
           </div>
         )}
