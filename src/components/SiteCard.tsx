@@ -1,5 +1,3 @@
-"use client";
-
 import { LaunchForecast, DayForecast } from "@/types/weather";
 import { getQualityColor, getQualityLabel, windDegToDirection } from "@/utils/weatherCalculations";
 import { MapPin, Wind, Navigation, ArrowUpRight } from "lucide-react";
@@ -15,7 +13,6 @@ export function SiteCard({ forecast, isActive, onClick, index }: SiteCardProps) 
   const score = forecast.overallScore;
   const color = getQualityColor(score);
   const label = getQualityLabel(score);
-
   const today: DayForecast = forecast.days[0];
   const bestHour = today.hours.find(h => h.hour === today.bestHour) || today.hours[Math.floor(today.hours.length / 2)];
   const bestWind = bestHour?.windSpeed10m ?? 0;
@@ -25,23 +22,17 @@ export function SiteCard({ forecast, isActive, onClick, index }: SiteCardProps) 
   return (
     <div
       onClick={onClick}
-      className={`
-        group relative p-5 sm:p-6 rounded-2xl cursor-pointer
-        transition-all duration-300 animate-fade-in-up
-        ${isActive
+      className={`group relative p-5 sm:p-6 rounded-2xl cursor-pointer transition-all duration-300 animate-fade-in-up border ${
+        isActive
           ? "bg-gradient-to-br from-[#181818] to-[#1a1a1a] border-[#00FF8C]/30 shadow-[0_0_30px_rgba(0,255,140,0.06)]"
-          : "bg-[#181818] border-[#252525] hover:bg-[#1E1E1E] hover:border-[#333]"
-        }
-        border
-      `}
+          : "bg-[#181818] border-[#252525] hover:bg-[#1E1E1E] hover:border-[#333333]"
+      }`}
       style={{ animationDelay: `${index * 100}ms` }}
     >
       {isActive && (
         <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-[#00FF8C]/[0.03] to-transparent pointer-events-none" />
       )}
-
       <div className="relative flex items-start gap-4">
-        {/* Score circle */}
         <div
           className="w-14 h-14 rounded-xl flex items-center justify-center text-lg font-bold shrink-0 transition-all duration-500"
           style={{
@@ -53,7 +44,6 @@ export function SiteCard({ forecast, isActive, onClick, index }: SiteCardProps) 
         >
           {score.toFixed(1)}
         </div>
-
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-3">
             <div>
@@ -72,16 +62,12 @@ export function SiteCard({ forecast, isActive, onClick, index }: SiteCardProps) 
               {label}
             </span>
           </div>
-
-          {/* Stats grid */}
           <div className="mt-4 grid grid-cols-3 gap-3">
             <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/[0.03]">
               <Wind size={14} className="text-[#4DA3FF] shrink-0" />
               <div>
                 <p className="text-[11px] text-white/30">Vento suolo</p>
-                <p className="text-sm font-semibold text-white/80">
-                  {bestWind.toFixed(0)} <span className="text-[10px] font-normal text-white/40">km/h</span>
-                </p>
+                <p className="text-sm font-semibold text-white/80">{bestWind.toFixed(0)} <span className="text-[10px] font-normal text-white/40">km/h</span></p>
               </div>
             </div>
             <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/[0.03]">
@@ -95,14 +81,10 @@ export function SiteCard({ forecast, isActive, onClick, index }: SiteCardProps) 
               <ArrowUpRight size={14} className="text-[#FFC857] shrink-0" />
               <div>
                 <p className="text-[11px] text-white/30">Termiche</p>
-                <p className="text-sm font-semibold text-white/80">
-                  {bestThermal.toFixed(1)} <span className="text-[10px] font-normal text-white/40">m/s</span>
-                </p>
+                <p className="text-sm font-semibold text-white/80">{bestThermal.toFixed(1)} <span className="text-[10px] font-normal text-white/40">m/s</span></p>
               </div>
             </div>
           </div>
-
-          {/* Days summary */}
           <div className="mt-3 flex flex-wrap gap-1.5">
             {forecast.days.map((day) => {
               const dayColor = getQualityColor(day.averageQuality);

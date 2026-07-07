@@ -30,10 +30,8 @@ export default function Index() {
   return (
     <div className="min-h-screen bg-[#0A0A0A]">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6">
-        {/* Header */}
         <Header siteCount={allForecasts.length} />
 
-        {/* Stats bar */}
         {!loading && allForecasts.length > 0 && (
           <div className="flex items-center gap-4 mb-6 text-sm text-white/40 animate-fade-in-up" style={{ animationDelay: "100ms" }}>
             <div className="flex items-center gap-1.5">
@@ -50,7 +48,6 @@ export default function Index() {
           </div>
         )}
 
-        {/* Search */}
         <div className="relative mb-6 animate-fade-in-up" style={{ animationDelay: "150ms" }}>
           <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
             <Search size={16} className="text-white/30" />
@@ -64,7 +61,6 @@ export default function Index() {
           />
         </div>
 
-        {/* Error */}
         {error && (
           <div className="flex items-center gap-3 p-4 mb-6 rounded-xl bg-[#FF4E4E]/10 border border-[#FF4E4E]/20 text-sm text-[#FF4E4E] animate-fade-in">
             <AlertCircle size={18} />
@@ -72,7 +68,6 @@ export default function Index() {
           </div>
         )}
 
-        {/* Loading */}
         {loading && allForecasts.length === 0 && (
           <div className="flex flex-col items-center justify-center py-24 gap-4 animate-fade-in">
             <Loader2 size={32} className="text-[#00FF8C] animate-spin" />
@@ -80,7 +75,6 @@ export default function Index() {
           </div>
         )}
 
-        {/* Site cards */}
         {!loading && sortedForecasts.length > 0 && (
           <div className="space-y-3">
             {sortedForecasts.map((f, i) => (
@@ -90,9 +84,7 @@ export default function Index() {
                 isActive={f.siteId === selectedSite?.id}
                 onClick={() => {
                   const site = launchSites.find((s) => s.id === f.siteId);
-                  if (site) {
-                    setSelectedSite(site);
-                  }
+                  if (site) setSelectedSite(site);
                 }}
                 index={i}
               />
@@ -100,14 +92,12 @@ export default function Index() {
           </div>
         )}
 
-        {/* Dettaglio decollo selezionato */}
         {selectedForecast && selectedSite && (
           <div className="mt-6 animate-scale-in">
             <DayTabs days={selectedForecast.days} />
           </div>
         )}
 
-        {/* Empty state */}
         {!loading && searchQuery && sortedForecasts.length === 0 && (
           <div className="flex flex-col items-center justify-center py-24 gap-4 animate-fade-in">
             <div className="w-16 h-16 rounded-2xl bg-white/[0.04] flex items-center justify-center">
@@ -118,7 +108,6 @@ export default function Index() {
           </div>
         )}
 
-        {/* Footer */}
         {!loading && allForecasts.length > 0 && (
           <div className="mt-10 pt-4 border-t border-[#252525] text-center animate-fade-in" style={{ animationDelay: "500ms" }}>
             <p className="text-xs text-white/25">
