@@ -91,6 +91,8 @@ export interface LaunchForecast {
   siteName: string;
   lat: number;
   lon: number;
+  elevation: number;
+  exposure: string;
   days: DayForecast[];
   overallScore: number;
 }

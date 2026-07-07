@@ -156,6 +156,8 @@ export async function fetchSiteWeather(site: LaunchSite): Promise<LaunchForecast
     siteName: site.name,
     lat: site.lat,
     lon: site.lon,
+    elevation: site.elevation,
+    exposure: site.exposure,
     days,
     overallScore,
   };

@@ -3,7 +3,7 @@ import { QualityBadge } from "./QualityBadge";
 import { MiniMap } from "./MiniMap";
 import { useAnimatedNumber } from "@/hooks/useAnimationOnMount";
 import { getQualityColor, getDayName } from "@/utils/weatherCalculations";
-import { ChevronRight, Wind, Cloud, Thermometer, Clock } from "lucide-react";
+import { ChevronRight, Wind, Cloud, Thermometer, Clock, Mountain, Compass } from "lucide-react";
 
 interface LaunchCardProps {
   forecast: LaunchForecast;
@@ -50,8 +50,20 @@ export function LaunchCard({ forecast, onSelect, index = 0, visible = true }: La
             {forecast.siteName}
           </h3>
 
-          {/* Day summaries */}
+          {/* Elevation & Exposure */}
           <div className="flex gap-4 mt-2">
+            <div className="flex items-center gap-1.5 text-xs text-white/60">
+              <Mountain size={12} color="#00FF8C" />
+              {forecast.elevation} m
+            </div>
+            <div className="flex items-center gap-1.5 text-xs text-white/60">
+              <Compass size={12} color="#4DA3FF" />
+              {forecast.exposure}
+            </div>
+          </div>
+
+          {/* Day summaries */}
+          <div className="flex gap-4 mt-1.5">
             {forecast.days.map((day) => (
               <div key={day.date} className="flex items-center gap-1.5 text-xs text-white/70">
                 <Clock size={11} className="text-white/40" />
@@ -64,22 +76,6 @@ export function LaunchCard({ forecast, onSelect, index = 0, visible = true }: La
                 </span>
               </div>
             ))}
-          </div>
-
-          {/* Quick stats */}
-          <div className="flex gap-4 mt-2">
-            <div className="flex items-center gap-1 text-xs text-white/60">
-              <Wind size={12} color="#4DA3FF" />
-              {forecast.days[0]?.hours[0]?.windSpeed10m.toFixed(0) ?? "--"} km/h
-            </div>
-            <div className="flex items-center gap-1 text-xs text-white/60">
-              <Thermometer size={12} color="#FF9F1C" />
-              {forecast.days[0]?.hours[0]?.temp.toFixed(0) ?? "--"}°
-            </div>
-            <div className="flex items-center gap-1 text-xs text-white/60">
-              <Cloud size={12} color="#4DA3FF" />
-              {forecast.days[0]?.hours[0]?.cloudCover.toFixed(0) ?? "--"}%
-            </div>
           </div>
         </div>
 

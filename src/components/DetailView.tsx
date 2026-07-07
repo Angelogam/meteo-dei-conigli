@@ -2,7 +2,7 @@ import { LaunchForecast } from "@/types/weather";
 import { MiniMap } from "./MiniMap";
 import { DayTabs } from "./DayTabs";
 import { QualityBadge } from "./QualityBadge";
-import { ArrowLeft, Wind, MapPin, RefreshCw } from "lucide-react";
+import { ArrowLeft, Wind, MapPin, Mountain, Compass } from "lucide-react";
 import { getQualityLabel, getQualityColor } from "@/utils/weatherCalculations";
 import { useInViewAnimation } from "@/hooks/useAnimationOnMount";
 
@@ -41,9 +41,19 @@ export function DetailView({ forecast, onBack }: DetailViewProps) {
               <MiniMap lat={forecast.lat} lon={forecast.lon} size={80} />
               <div>
                 <h2 className="text-xl font-bold text-white">{forecast.siteName}</h2>
-                <div className="flex items-center gap-1.5 mt-1 text-xs text-white/60">
-                  <MapPin size={11} />
-                  {forecast.lat.toFixed(4)}, {forecast.lon.toFixed(4)}
+                <div className="flex items-center gap-3 mt-1.5">
+                  <div className="flex items-center gap-1.5 text-xs text-white/60">
+                    <Mountain size={12} color="#00FF8C" />
+                    {forecast.elevation} m
+                  </div>
+                  <div className="flex items-center gap-1.5 text-xs text-white/60">
+                    <Compass size={12} color="#4DA3FF" />
+                    {forecast.exposure}
+                  </div>
+                  <div className="flex items-center gap-1.5 text-xs text-white/40">
+                    <MapPin size={10} />
+                    {forecast.lat.toFixed(4)}, {forecast.lon.toFixed(4)}
+                  </div>
                 </div>
                 <div className="flex items-center gap-2 mt-2">
                   <Wind size={13} color="#4DA3FF" />
