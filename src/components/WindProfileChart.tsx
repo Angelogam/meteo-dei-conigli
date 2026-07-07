@@ -1,14 +1,6 @@
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  ResponsiveContainer,
-  Tooltip,
-  CartesianGrid,
-} from "recharts";
+import { useMemo } from "react";
 
-interface WindData {
+interface WindLevel {
   altitude: string;
   speed: number;
   direction: number;
@@ -21,18 +13,83 @@ interface WindProfileChartProps {
   wind3500m: { speed: number; direction: number };
 }
 
-function CustomTooltip({ active, payload }: any) {
-  if (active && payload && payload.length) {
-    const data = payload[0].payload;
-    return (
-      <div className="bg-[#1a1a2e] border border-white/10 rounded-lg px-3 py-2 shadow-xl">
-        <p className="text-white/80 text-xs">{data.altitude}</p>
-        <p className="text-[#4DA3FF] text-sm font-mono font-bold">{data.speed} km/h</p>
-        <p className="text-white/40 text-[10px]">{data.direction}°</p>
+const ALTITUDE_LABELS = ["4.000 m", "3.000 m", "2.000 m", "1.000 m", "Suolo"];
+const WIND_X_POSITIONS = [0, 20, 40, 60, 80, 100]; // percentuali
+
+function windDegToArrow(deg: number): string {
+  const dirs = ["N","NNE","NE","ENE","E","ESE","SE","SSE","S","SSW","SW","WSW","W","WNW","NW","NNW"];
+  const idx = Math.round(deg / 22.5) % 16;
+  return dirs[idx];
+}
+
+// Da km/h a "forza Beaufort" semplificata per colore
+function getWindColor(speed: number): string {
+  if (speed < 5) return "#00FF8C";
+  if (speed < 15) return "#4DA3FF";
+  if (speed < 25) return "#FFC857";
+  if (speed < 35) return "#FF9F1C";
+  return "#FF4E4E";
+}
+
+function getWindIntensity(speed: number): number {
+  // lunghezza della barra orizzontale (0–100% della cella)
+  return Math.min(100, (speed / 50) * 100);
+}
+
+function WindArrowSVG({ direction, speed }: { direction: number; speed: number }) {
+  const color = getWindColor(speed);
+  return (
+    <svg width="28" height="28" viewBox="0 0 28 28" className="shrink-0">
+      <defs>
+        <marker id={`arrowhead-${Math.round(direction)}-${Math.round(speed)}`} markerWidth="6" markerHeight="6" refX="6" refY="3" orient="auto">
+          <polygon points="0 0, 6 3, 0 6" fill={color} />
+        </marker>
+      </defs>
+      <line
+        x1="14" y1="14"
+        x2={14 + 10 * Math.sin((direction * Math.PI) / 180)}
+        y2={14 - 10 * Math.cos((direction * Math.PI) / 180)}
+        stroke={color}
+        strokeWidth="2.5"
+        strokeLinecap="round"
+        markerEnd={`url(#arrowhead-${Math.round(direction)}-${Math.round(speed)})`}
+      />
+      <circle cx="14" cy="14" r="3" fill={color} opacity="0.3" />
+    </svg>
+  );
+}
+
+function WindLevelBar({ speed, direction }: { speed: number; direction: number }) {
+  const pct = getWindIntensity(speed);
+  const color = getWindColor(speed);
+  const arrow = windDegToArrow(direction);
+
+  return (
+    <div className="flex items-center gap-3 w-full">
+      {/* Freccia direzionale */}
+      <WindArrowSVG direction={direction} speed={speed} />
+      {/* Barra intensità */}
+      <div className="flex-1 h-6 rounded-full bg-white/[0.04] overflow-hidden relative">
+        <div
+          className="h-full rounded-full transition-all duration-700 ease-out"
+          style={{
+            width: `${pct}%`,
+            backgroundColor: color,
+            boxShadow: `0 0 8px ${color}40`,
+          }}
+        />
+        {/* Etichetta velocità + direzione */}
+        <div className="absolute inset-0 flex items-center justify-between px-3">
+          <span className="text-[11px] font-mono font-bold text-white/80 drop-shadow-md">
+            {speed.toFixed(0)} km/h
+          </span>
+          <span className="text-[10px] font-mono font-semibold text-white/90 drop-shadow-md" style={{ color }}>
+            {arrow}
+          </span>
+        </div>
       </div>
-    );
-  }
-  return null;
+    </div>
+  );
 }
 
 export function WindProfileChart({
@@ -41,42 +98,29 @@ export function WindProfileChart({
   wind2500m,
   wind3500m,
 }: WindProfileChartProps) {
-  const data: WindData[] = [
+  const levels: WindLevel[] = useMemo(() => [
+    { altitude: "3.500 m", speed: wind3500m.speed, direction: wind3500m.direction },
+    { altitude: "2.500 m", speed: wind2500m.speed, direction: wind2500m.direction },
+    { altitude: "1.500 m", speed: wind1500m.speed, direction: wind1500m.direction },
     { altitude: "Suolo", speed: surfaceWind.speed, direction: surfaceWind.direction },
-    { altitude: "1500m", speed: wind1500m.speed, direction: wind1500m.direction },
-    { altitude: "2500m", speed: wind2500m.speed, direction: wind2500m.direction },
-    { altitude: "3500m", speed: wind3500m.speed, direction: wind3500m.direction },
-  ];
+  ], [surfaceWind, wind1500m, wind2500m, wind3500m]);
 
   return (
-    <div className="w-full h-[140px]">
-      <ResponsiveContainer width="100%" height="100%">
-        <LineChart data={data} margin={{ top: 5, right: 10, bottom: 5, left: -20 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#ffffff08" />
-          <XAxis
-            dataKey="altitude"
-            tick={{ fill: "#ffffff60", fontSize: 10 }}
-            axisLine={{ stroke: "#ffffff15" }}
-            tickLine={false}
-          />
-          <YAxis
-            tick={{ fill: "#ffffff40", fontSize: 9 }}
-            axisLine={false}
-            tickLine={false}
-            domain={[0, "auto"]}
-          />
-          <Tooltip content={<CustomTooltip />} />
-          <Line
-            type="monotone"
-            dataKey="speed"
-            stroke="#4DA3FF"
-            strokeWidth={2}
-            dot={{ fill: "#4DA3FF", r: 4 }}
-            activeDot={{ r: 6, fill: "#4DA3FF" }}
-            strokeLinecap="round"
-          />
-        </LineChart>
-      </ResponsiveContainer>
+    <div className="w-full space-y-3">
+      {levels.map((level) => (
+        <div key={level.altitude} className="flex items-center gap-4">
+          {/* Etichetta altitudine a sinistra */}
+          <div className="w-20 text-right shrink-0">
+            <span className="text-xs font-semibold text-white/50 font-mono">
+              {level.altitude}
+            </span>
+          </div>
+          {/* Barra vento */}
+          <div className="flex-1">
+            <WindLevelBar speed={level.speed} direction={level.direction} />
+          </div>
+        </div>
+      ))}
     </div>
   );
 }

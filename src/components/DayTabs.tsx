@@ -4,7 +4,7 @@ import { HourSlot } from "./HourSlot";
 import { useInViewAnimation } from "@/hooks/useAnimationOnMount";
 import { WindProfileChart } from "./WindProfileChart";
 import { ThermalChart } from "./ThermalChart";
-import { ArrowLeft, ArrowRight } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { useRef, useState, useEffect } from "react";
 
 interface DayTabsProps {
@@ -23,7 +23,10 @@ export function DayTabs({ days }: DayTabsProps) {
     if (scrollRef.current) {
       const el = scrollRef.current;
       const checkScroll = () => {
-        setShowScrollHint(el.scrollWidth > el.clientWidth && el.scrollLeft < el.scrollWidth - el.clientWidth - 50);
+        setShowScrollHint(
+          el.scrollWidth > el.clientWidth &&
+          el.scrollLeft < el.scrollWidth - el.clientWidth - 50
+        );
       };
       checkScroll();
       el.addEventListener("scroll", checkScroll);
@@ -33,11 +36,16 @@ export function DayTabs({ days }: DayTabsProps) {
 
   if (!days.length) return null;
 
-  // Wind chart data from first hour of active day
+  // Primo record del giorno attivo per i grafici
   const firstHour = currentDay?.hours[0];
 
   return (
-    <div ref={ref} className={`transition-all duration-700 ${inView ? "opacity-100" : "opacity-0 translate-y-8"}`}>
+    <div
+      ref={ref}
+      className={`transition-all duration-700 ${
+        inView ? "opacity-100" : "opacity-0 translate-y-8"
+      }`}
+    >
       {/* Day selector */}
       <div className="flex gap-2 mb-4">
         {days.map((day, idx) => (
@@ -46,9 +54,10 @@ export function DayTabs({ days }: DayTabsProps) {
             onClick={() => setActiveDay(idx)}
             className={`
               flex-1 py-2.5 px-3 rounded-lg text-sm font-semibold transition-all duration-300
-              ${idx === activeDay
-                ? "bg-white/15 text-white shadow-lg"
-                : "bg-white/[0.04] text-white/50 hover:bg-white/[0.08] hover:text-white/70"
+              ${
+                idx === activeDay
+                  ? "bg-white/15 text-white shadow-lg"
+                  : "bg-white/[0.04] text-white/50 hover:bg-white/[0.08] hover:text-white/70"
               }
             `}
           >
@@ -70,12 +79,7 @@ export function DayTabs({ days }: DayTabsProps) {
           className="flex gap-2 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent"
         >
           {currentDay?.hours.map((hour, idx) => (
-            <HourSlot
-              key={hour.hour}
-              data={hour}
-              index={idx}
-              visible={inView}
-            />
+            <HourSlot key={hour.hour} data={hour} index={idx} visible={inView} />
           ))}
         </div>
 
@@ -87,7 +91,7 @@ export function DayTabs({ days }: DayTabsProps) {
         )}
       </div>
 
-      {/* Charts section (visible on desktop) */}
+      {/* Charts section (desktop) */}
       {firstHour && currentDay && (
         <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="rounded-xl border border-white/[0.06] bg-[#121212] p-4">
@@ -136,17 +140,40 @@ export function DayTabs({ days }: DayTabsProps) {
                     key={h.hour}
                     className="border-b border-white/[0.03] hover:bg-white/[0.03] transition-colors"
                   >
-                    <td className="py-2.5 px-3 font-mono text-white/90 text-sm">{formatHour(h.hour)}</td>
-                    <td className="py-2.5 px-3 font-mono text-white/70">{h.temp.toFixed(0)}°</td>
-                    <td className="py-2.5 px-3 font-mono text-white/70">{h.humidity.toFixed(0)}%</td>
-                    <td className="py-2.5 px-3 font-mono text-[#4DA3FF] font-semibold">{h.windSpeed10m.toFixed(0)} km/h</td>
-                    <td className="py-2.5 px-3 font-mono text-[#7db8ff]">{h.windSpeed1500m.toFixed(0)} km/h</td>
-                    <td className="py-2.5 px-3 font-mono text-[#5890d0]">{h.windSpeed2500m.toFixed(0)} km/h</td>
-                    <td className="py-2.5 px-3 font-mono text-[#3a6a9e]">{h.windSpeed3500m.toFixed(0)} km/h</td>
-                    <td className="py-2.5 px-3 font-mono text-white/70">{h.cloudCover.toFixed(0)}%</td>
-                    <td className="py-2.5 px-3 font-mono text-[#FF9F1C] font-semibold">{h.thermalStrength.toFixed(1)} m/s</td>
-                    <td className="py-2.5 px-3 font-mono text-[#FFC857] font-semibold">{h.turbulence}/5</td>
-                    <td className="py-2.5 px-3 font-mono font-bold text-sm" style={{ color: getQualityColor(h.qualityScore) }}>
+                    <td className="py-2.5 px-3 font-mono text-white/90 text-sm">
+                      {formatHour(h.hour)}
+                    </td>
+                    <td className="py-2.5 px-3 font-mono text-white/70">
+                      {h.temp.toFixed(0)}°
+                    </td>
+                    <td className="py-2.5 px-3 font-mono text-white/70">
+                      {h.humidity.toFixed(0)}%
+                    </td>
+                    <td className="py-2.5 px-3 font-mono text-[#4DA3FF] font-semibold">
+                      {h.windSpeed10m.toFixed(0)} km/h
+                    </td>
+                    <td className="py-2.5 px-3 font-mono text-[#7db8ff]">
+                      {h.windSpeed1500m.toFixed(0)} km/h
+                    </td>
+                    <td className="py-2.5 px-3 font-mono text-[#5890d0]">
+                      {h.windSpeed2500m.toFixed(0)} km/h
+                    </td>
+                    <td className="py-2.5 px-3 font-mono text-[#3a6a9e]">
+                      {h.windSpeed3500m.toFixed(0)} km/h
+                    </td>
+                    <td className="py-2.5 px-3 font-mono text-white/70">
+                      {h.cloudCover.toFixed(0)}%
+                    </td>
+                    <td className="py-2.5 px-3 font-mono text-[#FF9F1C] font-semibold">
+                      {h.thermalStrength.toFixed(1)} m/s
+                    </td>
+                    <td className="py-2.5 px-3 font-mono text-[#FFC857] font-semibold">
+                      {h.turbulence}/5
+                    </td>
+                    <td
+                      className="py-2.5 px-3 font-mono font-bold text-sm"
+                      style={{ color: getQualityColor(h.qualityScore) }}
+                    >
                       {h.qualityScore}
                     </td>
                   </tr>
