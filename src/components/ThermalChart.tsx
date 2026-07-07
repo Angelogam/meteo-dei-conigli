@@ -1,73 +1,49 @@
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  ResponsiveContainer,
-  Tooltip,
-  CartesianGrid,
-  Cell,
-} from "recharts";
 import { ProcessedHourData } from "@/types/weather";
-import { formatHour } from "@/utils/weatherCalculations";
+import { getQualityColor } from "@/utils/weatherCalculations";
+import { useMemo } from "react";
 
 interface ThermalChartProps {
   hours: ProcessedHourData[];
 }
 
-function CustomTooltip({ active, payload }: any) {
-  if (active && payload && payload.length) {
-    const data = payload[0].payload;
-    return (
-      <div className="bg-[#1a1a2e] border border-white/10 rounded-lg px-3 py-2 shadow-xl">
-        <p className="text-white/80 text-xs">{data.hour}</p>
-        <p className="text-[#FF9F1C] text-sm font-mono font-bold">{data.strength} m/s</p>
-        <p className="text-white/40 text-[10px]">Forza: {data.force}/5</p>
-      </div>
-    );
-  }
-  return null;
-}
-
-function getBarColor(force: number): string {
-  if (force >= 4) return "#00FF8C";
-  if (force >= 3) return "#4DA3FF";
-  if (force >= 2) return "#FFC857";
-  return "#FF9F1C";
-}
-
 export function ThermalChart({ hours }: ThermalChartProps) {
-  const data = hours.map((h) => ({
-    hour: formatHour(h.hour),
-    strength: h.thermalStrength,
-    force: h.thermalForce,
-  }));
+  const maxStrength = useMemo(
+    () => Math.max(...hours.map((h) => h.thermalStrength), 1),
+    [hours]
+  );
 
   return (
-    <div className="w-full h-[120px]">
-      <ResponsiveContainer width="100%" height="100%">
-        <BarChart data={data} margin={{ top: 5, right: 10, bottom: 5, left: -20 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#ffffff08" />
-          <XAxis
-            dataKey="hour"
-            tick={{ fill: "#ffffff60", fontSize: 10 }}
-            axisLine={{ stroke: "#ffffff15" }}
-            tickLine={false}
-          />
-          <YAxis
-            tick={{ fill: "#ffffff40", fontSize: 9 }}
-            axisLine={false}
-            tickLine={false}
-            domain={[0, "auto"]}
-          />
-          <Tooltip content={<CustomTooltip />} />
-          <Bar dataKey="strength" radius={[3, 3, 0, 0]} maxBarSize={30}>
-            {data.map((entry, index) => (
-              <Cell key={`cell-${index}`} fill={getBarColor(entry.force)} />
-            ))}
-          </Bar>
-        </BarChart>
-      </ResponsiveContainer>
+    <div className="w-full space-y-2">
+      {hours.map((hour, idx) => {
+        const pct = (hour.thermalStrength / maxStrength) * 100;
+        const color = getQualityColor(hour.qualityScore);
+        return (
+          <div key={hour.hour} className="flex items-center gap-3">
+            <span className="w-9 text-[10px] font-mono font-semibold text-white/40 shrink-0">
+              {String(hour.hour).padStart(2, "0")}
+            </span>
+            <div className="flex-1 h-5 rounded-full bg-white/[0.04] overflow-hidden relative">
+              <div
+                className="h-full rounded-full transition-all duration-700"
+                style={{
+                  width: `${pct}%`,
+                  backgroundColor: color,
+                  boxShadow: `0 0 6px ${color}30`,
+                }}
+              />
+            </div>
+            <span className="w-14 text-right text-[11px] font-mono font-semibold" style={{ color }}>
+              {hour.thermalStrength.toFixed(1)}
+            </span>
+          </div>
+        );
+      })}
+
+      {/* Legenda */}
+      <div className="flex items-center justify-between pt-2 text-[10px] text-white/20 font-mono">
+        <span>0 m/s</span>
+        <span>{maxStrength.toFixed(1)} m/s</span>
+      </div>
     </div>
   );
 }
