@@ -53,9 +53,9 @@ export async function fetchSiteWeather(site: LaunchSite): Promise<LaunchForecast
 
   const hourly = data.hourly;
 
-  // Process all hours from the 3-day window (10:00-18:00 for each day)
+  // Process all hours from the 3-day window (9:00-19:00 for each day)
   const days: DayForecast[] = [];
-  const targetHours = [10, 12, 14, 16, 18];
+  const targetHours = [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19];
 
   for (let dayOffset = 0; dayOffset < 3; dayOffset++) {
     const dateStr = dayOffset === 0 ? today : dayOffset === 1 ? day2 : day3;
