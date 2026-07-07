@@ -24,10 +24,10 @@ export function Header({ lastUpdated, onRefresh, loading }: HeaderProps) {
           </div>
           <div>
             <h1 className="text-base font-bold text-white tracking-tight">
-              Thermik<span className="text-[#00FF8C]">Vision</span>
+              Meteo dei <span className="text-[#00FF8C]">Conigli</span>
             </h1>
             <p className="text-[11px] text-white/50 uppercase tracking-widest">
-              Free Flight Meteo
+              Previsioni Volo Libero
             </p>
           </div>
         </div>
