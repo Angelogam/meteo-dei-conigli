@@ -1,56 +1,10 @@
 import { useState, useMemo } from "react";
 import { useWeatherData } from "@/hooks/useWeatherData";
 import { Header } from "@/components/Header";
-import { SearchBar } from "@/components/SearchBar";
-import { LaunchCard } from "@/components/LaunchCard";
-import { DetailView } from "@/components/DetailView";
-import { useInViewAnimation } from "@/hooks/useAnimationOnMount";
+import { SiteCard } from "@/components/SiteCard";
+import { SiteDetail } from "@/components/SiteDetail";
 import { launchSites } from "@/data/launchSites";
-import { LaunchForecast } from "@/types/weather";
-import { Navigation, Wind } from "lucide-react";
-
-function LoadingSkeleton() {
-  const { ref, inView } = useInViewAnimation(0.1);
-  return (
-    <div ref={ref} className="space-y-3">
-      {[...Array(6)].map((_, i) => (
-        <div
-          key={i}
-          className={`
-            rounded-xl border border-white/[0.04] bg-[#121212] p-4
-            transition-all duration-500
-            ${inView ? "opacity-100" : "opacity-0"}
-          `}
-          style={{ animationDelay: `${i * 80}ms` }}
-        >
-          <div className="flex items-center gap-4">
-            <div className="w-16 h-16 rounded-lg bg-white/[0.04] animate-pulse hidden sm:block" />
-            <div className="flex-1 space-y-2">
-              <div className="h-3 w-32 bg-white/[0.06] rounded animate-pulse" />
-              <div className="h-2 w-48 bg-white/[0.04] rounded animate-pulse" />
-              <div className="flex gap-2">
-                <div className="h-2 w-16 bg-white/[0.03] rounded animate-pulse" />
-                <div className="h-2 w-16 bg-white/[0.03] rounded animate-pulse" />
-                <div className="h-2 w-16 bg-white/[0.03] rounded animate-pulse" />
-              </div>
-            </div>
-            <div className="w-12 h-12 rounded-full bg-white/[0.04] animate-pulse" />
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-function EmptyState() {
-  return (
-    <div className="flex flex-col items-center justify-center py-20 text-center">
-      <Wind size={36} className="text-white/20 mb-4" />
-      <p className="text-base text-white/50">Nessun decollo trovato</p>
-      <p className="text-sm text-white/30 mt-1">Prova a modificare la ricerca</p>
-    </div>
-  );
-}
+import { Search, Loader2, AlertCircle, Compass } from "lucide-react";
 
 export default function Index() {
   const {
@@ -66,138 +20,123 @@ export default function Index() {
 
   const [searchQuery, setSearchQuery] = useState("");
 
-  // Sort by overall quality score
   const sortedForecasts = useMemo(() => {
     const list = [...allForecasts].sort((a, b) => b.overallScore - a.overallScore);
-
     if (!searchQuery.trim()) return list;
-
     const q = searchQuery.toLowerCase();
     return list.filter((f) => f.siteName.toLowerCase().includes(q));
   }, [allForecasts, searchQuery]);
 
-  // Find matching launch sites for sites without data yet
-  const filteredSites = useMemo(() => {
-    if (!searchQuery.trim()) return [];
-    const q = searchQuery.toLowerCase();
-    return launchSites.filter(
-      (s) =>
-        s.name.toLowerCase().includes(q) &&
-        !allForecasts.find((f) => f.siteId === s.id)
-    );
-  }, [searchQuery, allForecasts]);
+  const migliori = allForecasts.filter((f) => f.overallScore >= 4).length;
 
-  // Pass through the index for staggered animation
-  const indexedForecasts = sortedForecasts.map((f, idx) => ({ ...f, _index: idx }));
-
-  // Detail view
+  // Vista dettaglio
   if (selectedForecast) {
     return (
-      <div className="min-h-screen bg-[#0D0D0D] text-white">
-        <Header lastUpdated={lastUpdated} onRefresh={refresh} loading={loading} />
-        <main className="max-w-6xl mx-auto px-4 py-6">
-          <DetailView
+      <div className="min-h-screen bg-[#0A0A0A]">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6">
+          <SiteDetail
             forecast={selectedForecast}
             onBack={() => setSelectedSite(null)}
           />
-        </main>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#0D0D0D] text-white">
-      <Header lastUpdated={lastUpdated} onRefresh={refresh} loading={loading} />
+    <div className="min-h-screen bg-[#0A0A0A]">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6">
+        {/* Header */}
+        <Header siteCount={allForecasts.length} />
 
-      <main className="max-w-6xl mx-auto px-4 py-6">
-        {/* Hero headline */}
-        <div className="mb-6">
-          <h2 className="text-xl font-bold text-white">
-            Previsioni Volo Libero
-          </h2>
-          <p className="text-sm text-white/50 mt-1">
-            {loading
-              ? "Caricamento dati meteo in corso..."
-              : `${allForecasts.length} decolli · 3 giorni · Dati Open-Meteo LIVE`
-            }
-          </p>
-        </div>
-
-        {/* Search */}
-        <div className="mb-4">
-          <SearchBar value={searchQuery} onChange={setSearchQuery} />
-        </div>
-
-        {/* Regions filter */}
-        {!searchQuery && allForecasts.length > 0 && (
-          <div className="flex gap-2 mb-4">
-            <button
-              className="text-xs px-3 py-1.5 rounded-full border border-[#00FF8C]/30 text-[#00FF8C]/80 bg-[#00FF8C]/8 font-medium"
-            >
-              Tutti ({allForecasts.length})
-            </button>
+        {/* Stats bar */}
+        {!loading && allForecasts.length > 0 && (
+          <div className="flex items-center gap-4 mb-6 text-sm text-white/40 animate-fade-in-up" style={{ animationDelay: "100ms" }}>
+            <div className="flex items-center gap-1.5">
+              <Compass size={14} className="text-[#00FF8C]" />
+              <span><strong className="text-white/70">{allForecasts.length}</strong> decolli monitorati</span>
+            </div>
+            <div className="w-1 h-1 rounded-full bg-white/20" />
+            <div className="flex items-center gap-1.5">
+              <div className="w-2 h-2 rounded-full bg-[#00FF8C]" />
+              <span><strong className="text-white/70">{migliori}</strong> con punteggio ≥ 4.0</span>
+            </div>
+            <div className="w-1 h-1 rounded-full bg-white/20" />
+            <div className="flex items-center gap-1.5">
+              <span className="text-white/40">3 giorni di previsioni</span>
+            </div>
           </div>
         )}
 
+        {/* Search */}
+        <div className="relative mb-6 animate-fade-in-up" style={{ animationDelay: "150ms" }}>
+          <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
+            <Search size={16} className="text-white/30" />
+          </div>
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Cerca un decollo..."
+            className="w-full py-3.5 pl-11 pr-4 rounded-2xl bg-[#181818] border border-[#252525] text-sm text-white/80 placeholder:text-white/25 outline-none transition-all focus:border-[#00FF8C]/30 focus:bg-[#1A1A1A]"
+          />
+        </div>
+
         {/* Error */}
         {error && (
-          <div className="rounded-xl border border-[#FF4E4E]/20 bg-[#FF4E4E]/8 p-4 mb-4">
-            <p className="text-sm text-[#FF4E4E]/90">{error}</p>
+          <div className="flex items-center gap-3 p-4 mb-6 rounded-xl bg-[#FF4E4E]/10 border border-[#FF4E4E]/20 text-sm text-[#FF4E4E] animate-fade-in">
+            <AlertCircle size={18} />
+            <span>{error}</span>
           </div>
         )}
 
         {/* Loading */}
-        {loading && allForecasts.length === 0 && <LoadingSkeleton />}
+        {loading && allForecasts.length === 0 && (
+          <div className="flex flex-col items-center justify-center py-24 gap-4 animate-fade-in">
+            <Loader2 size={32} className="text-[#00FF8C] animate-spin" />
+            <p className="text-sm text-white/40">Caricamento dati meteo...</p>
+          </div>
+        )}
 
-        {/* Forecast list */}
+        {/* Site cards list */}
         {!loading && sortedForecasts.length > 0 && (
-          <div className="space-y-2">
-            {indexedForecasts.map((f) => (
-              <LaunchCard
+          <div className="space-y-3">
+            {sortedForecasts.map((f, i) => (
+              <SiteCard
                 key={f.siteId}
                 forecast={f}
-                onSelect={() => {
+                isActive={false}
+                onClick={() => {
                   const site = launchSites.find((s) => s.id === f.siteId);
                   if (site) setSelectedSite(site);
                 }}
-                index={f._index}
-                visible={true}
+                index={i}
               />
             ))}
           </div>
         )}
 
-        {/* Unloaded sites matching search */}
-        {filteredSites.length > 0 && (
-          <div className="mt-4">
-            <p className="text-xs text-white/40 uppercase tracking-widest mb-2 font-medium">
-              In attesa di dati
-            </p>
-            <div className="space-y-1">
-              {filteredSites.map((site) => (
-                <div
-                  key={site.id}
-                  className="rounded-lg border border-white/[0.06] bg-[#121212] px-4 py-2.5 text-sm text-white/60"
-                >
-                  {site.name}
-                </div>
-              ))}
+        {/* Empty state */}
+        {!loading && searchQuery && sortedForecasts.length === 0 && (
+          <div className="flex flex-col items-center justify-center py-24 gap-4 animate-fade-in">
+            <div className="w-16 h-16 rounded-2xl bg-white/[0.04] flex items-center justify-center">
+              <Search size={24} className="text-white/20" />
             </div>
+            <p className="text-base text-white/60 font-medium">Nessun decollo trovato</p>
+            <p className="text-sm text-white/30">Prova a modificare la ricerca</p>
           </div>
         )}
 
-        {/* Empty state */}
-        {!loading && searchQuery && sortedForecasts.length === 0 && filteredSites.length === 0 && (
-          <EmptyState />
-        )}
-
         {/* Footer */}
-        <div className="mt-8 pt-4 border-t border-white/[0.04] text-center">
-          <p className="text-xs text-white/30">
-            Dati Open-Meteo · Aggiornamento ogni 3 ore · {lastUpdated?.toLocaleTimeString() ?? "--"}
-          </p>
-        </div>
-      </main>
+        {!loading && allForecasts.length > 0 && (
+          <div className="mt-10 pt-4 border-t border-[#252525] text-center animate-fade-in" style={{ animationDelay: "500ms" }}>
+            <p className="text-xs text-white/25">
+              Dati forniti da Open-Meteo · Aggiornamento ogni 3 ore
+              {lastUpdated && ` · Ultimo aggiornamento: ${lastUpdated.toLocaleTimeString("it-IT")}`}
+            </p>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

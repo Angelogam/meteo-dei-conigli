@@ -1,13 +1,4 @@
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  ResponsiveContainer,
-  Tooltip,
-  CartesianGrid,
-  Cell,
-} from "recharts";
+import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip, CartesianGrid, Cell } from "recharts";
 import { ProcessedHourData } from "@/types/weather";
 import { formatHour } from "@/utils/weatherCalculations";
 
@@ -17,12 +8,12 @@ interface ThermalChartProps {
 
 function CustomTooltip({ active, payload }: any) {
   if (active && payload && payload.length) {
-    const data = payload[0].payload;
+    const d = payload[0].payload;
     return (
-      <div className="bg-[#1a1a2e] border border-white/10 rounded-lg px-3 py-2 shadow-xl">
-        <p className="text-white/80 text-xs">{data.hour}</p>
-        <p className="text-[#FF9F1C] text-sm font-mono font-bold">{data.strength} m/s</p>
-        <p className="text-white/40 text-[10px]">Forza: {data.force}/5</p>
+      <div className="bg-[#1a1a2e] border border-white/10 rounded-xl px-3 py-2.5 shadow-xl">
+        <p className="text-white/80 text-xs font-semibold">{d.hour}</p>
+        <p className="text-[#FF9F1C] text-sm font-mono font-bold">{d.strength} m/s</p>
+        <p className="text-white/40 text-[10px]">Forza: {d.force}/5</p>
       </div>
     );
   }
@@ -44,7 +35,7 @@ export function ThermalChart({ hours }: ThermalChartProps) {
   }));
 
   return (
-    <div className="w-full h-[120px]">
+    <div className="w-full h-[130px]">
       <ResponsiveContainer width="100%" height="100%">
         <BarChart data={data} margin={{ top: 5, right: 10, bottom: 5, left: -20 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="#ffffff08" />
@@ -61,9 +52,9 @@ export function ThermalChart({ hours }: ThermalChartProps) {
             domain={[0, "auto"]}
           />
           <Tooltip content={<CustomTooltip />} />
-          <Bar dataKey="strength" radius={[3, 3, 0, 0]} maxBarSize={30}>
-            {data.map((entry, index) => (
-              <Cell key={`cell-${index}`} fill={getBarColor(entry.force)} />
+          <Bar dataKey="strength" radius={[4, 4, 0, 0]} maxBarSize={28}>
+            {data.map((entry, idx) => (
+              <Cell key={`cell-${idx}`} fill={getBarColor(entry.force)} />
             ))}
           </Bar>
         </BarChart>

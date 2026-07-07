@@ -17,7 +17,6 @@ function getWindColor(speed: number): string {
 }
 
 function getWindIntensity(speed: number): number {
-  // Returns stroke width modifier
   if (speed < 5) return 1;
   if (speed < 15) return 1.5;
   if (speed < 25) return 2;
@@ -25,16 +24,11 @@ function getWindIntensity(speed: number): number {
   return 3;
 }
 
-const sizeMap = {
-  sm: 16,
-  md: 24,
-  lg: 32,
-};
+const sizeMap = { sm: 16, md: 24, lg: 32 };
 
 export function WindArrow({ direction, speed, size = "md", showSpeed = true, height }: WindArrowProps) {
   const px = height || sizeMap[size];
   const color = getWindColor(speed);
-  const intensity = getWindIntensity(speed);
 
   return (
     <div className="flex flex-col items-center gap-1">
@@ -46,73 +40,22 @@ export function WindArrow({ direction, speed, size = "md", showSpeed = true, hei
           height: px,
         }}
       >
-        <svg
-          width={px}
-          height={px}
-          viewBox="0 0 24 24"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-          style={{ filter: `drop-shadow(0 0 3px ${color}40)` }}
-        >
-          {/* Arrow shaft */}
-          <line
-            x1="12"
-            y1="22"
-            x2="12"
-            y2="6"
-            stroke={color}
-            strokeWidth={intensity}
-            strokeLinecap="round"
-            opacity={0.8}
-          />
-          {/* Arrow head */}
-          <path
-            d="M12 2L6 10H18L12 2Z"
-            fill={color}
-            opacity={0.9}
-          />
-          {/* Wind speed indicator lines */}
+        <svg width={px} height={px} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <line x1="12" y1="22" x2="12" y2="8" stroke={color} strokeWidth={2} strokeLinecap="round" opacity={0.7} />
+          <path d="M12 2L6 10H18L12 2Z" fill={color} opacity={0.9} />
           {speed > 5 && (
-            <>
-              <line
-                x1={12 - intensity * 2}
-                y1={18}
-                x2={12 + intensity * 2}
-                y2={18}
-                stroke={color}
-                strokeWidth={1}
-                opacity={0.5}
-              />
-              {speed > 15 && (
-                <line
-                  x1={12 - intensity * 2.5}
-                  y1={15}
-                  x2={12 + intensity * 2.5}
-                  y2={15}
-                  stroke={color}
-                  strokeWidth={1}
-                  opacity={0.4}
-                />
-              )}
-              {speed > 25 && (
-                <line
-                  x1={12 - intensity * 3}
-                  y1={12}
-                  x2={12 + intensity * 3}
-                  y2={12}
-                  stroke={color}
-                  strokeWidth={1}
-                  opacity={0.3}
-                />
-              )}
-            </>
+            <line x1={12 - 3} y1={18} x2={12 + 3} y2={18} stroke={color} strokeWidth={1} opacity={0.4} />
+          )}
+          {speed > 15 && (
+            <line x1={12 - 4} y1={15} x2={12 + 4} y2={15} stroke={color} strokeWidth={1} opacity={0.3} />
+          )}
+          {speed > 25 && (
+            <line x1={12 - 5} y1={12} x2={12 + 5} y2={12} stroke={color} strokeWidth={1} opacity={0.2} />
           )}
         </svg>
       </div>
       {showSpeed && (
-        <span className="text-[10px] font-mono text-white/60">
-          {speed.toFixed(0)} km/h
-        </span>
+        <span className="text-[10px] font-mono text-white/50">{speed.toFixed(0)} km/h</span>
       )}
     </div>
   );

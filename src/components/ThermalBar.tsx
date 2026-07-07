@@ -22,16 +22,16 @@ function getThermalLabel(force: number): string {
   return "Assenti";
 }
 
-export function ThermalBar({ strength, force, height = 80 }: ThermalBarProps) {
+export function ThermalBar({ strength, force, height = 64 }: ThermalBarProps) {
   const color = getThermalColor(force);
   const percentage = (force / 5) * 100;
   const label = getThermalLabel(force);
 
   return (
     <div className="flex flex-col items-center gap-1.5">
-      <Flame size={14} color={color} className="transition-colors duration-500" />
+      <Flame size={13} color={color} className="transition-colors duration-500" />
       <div
-        className="w-2 rounded-full overflow-hidden"
+        className="w-1.5 rounded-full overflow-hidden"
         style={{ height, backgroundColor: "#1a1a2e" }}
       >
         <div
@@ -39,21 +39,16 @@ export function ThermalBar({ strength, force, height = 80 }: ThermalBarProps) {
           style={{
             height: `${percentage}%`,
             backgroundColor: color,
-            boxShadow: `0 0 8px ${color}60`,
+            boxShadow: `0 0 8px ${color}40`,
             alignSelf: "flex-end",
             marginTop: "auto",
           }}
         />
       </div>
-      <span
-        className="text-[10px] font-mono font-medium"
-        style={{ color }}
-      >
-        {strength.toFixed(1)} m/s
+      <span className="text-[11px] font-mono font-bold" style={{ color }}>
+        {strength.toFixed(1)}
       </span>
-      <span className="text-[8px] text-white/40 uppercase tracking-wider">
-        {label}
-      </span>
+      <span className="text-[8px] text-white/35 uppercase tracking-wider font-medium">{label}</span>
     </div>
   );
 }

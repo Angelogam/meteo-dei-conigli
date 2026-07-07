@@ -1,59 +1,48 @@
-import { Navigation } from "lucide-react";
+"use client";
+
+import { Navigation, Wind } from "lucide-react";
 
 interface HeaderProps {
-  lastUpdated: Date | null;
-  onRefresh: () => void;
-  loading: boolean;
+  siteCount: number;
 }
 
-function timeAgo(date: Date): string {
-  const diff = Math.floor((Date.now() - date.getTime()) / 1000);
-  if (diff < 60) return "ora";
-  if (diff < 3600) return `${Math.floor(diff / 60)} min fa`;
-  return `${Math.floor(diff / 3600)}h fa`;
-}
-
-export function Header({ lastUpdated, onRefresh, loading }: HeaderProps) {
+export function Header({ siteCount }: HeaderProps) {
   return (
-    <header className="sticky top-0 z-50 backdrop-blur-xl bg-[#0D0D0D]/80 border-b border-white/[0.04]">
-      <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
-        {/* Logo + Title */}
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-[#00FF8C]/10 border border-[#00FF8C]/20 flex items-center justify-center">
-            <Navigation size={16} color="#00FF8C" />
+    <header className="relative mb-8 animate-fade-in-up">
+      {/* Background glow */}
+      <div className="absolute -top-20 -left-20 w-64 h-64 bg-[#00FF8C]/[0.03] rounded-full blur-[100px] pointer-events-none" />
+      <div className="absolute -top-20 -right-20 w-64 h-64 bg-[#4DA3FF]/[0.03] rounded-full blur-[100px] pointer-events-none" />
+
+      <div className="relative flex items-center justify-between gap-4 pt-8 pb-6">
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#00FF8C]/20 to-[#00FF8C]/5 border border-[#00FF8C]/20 flex items-center justify-center animate-float">
+            <Wind size={24} className="text-[#00FF8C]" />
           </div>
           <div>
-            <h1 className="text-base font-bold text-white tracking-tight">
-              Meteo dei <span className="text-[#00FF8C]">Conigli</span>
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white">
+              Meteo Volo
             </h1>
-            <p className="text-[11px] text-white/50 uppercase tracking-widest">
-              Previsioni Volo Libero
+            <p className="text-sm text-white/40 mt-0.5">
+              Previsioni per parapendio e deltaplano · {siteCount} decolli monitorati
             </p>
           </div>
         </div>
 
-        {/* Right section */}
-        <div className="flex items-center gap-3">
-          {lastUpdated && (
-            <span className="text-xs text-white/50 hidden sm:block">
-              {timeAgo(lastUpdated)}
-            </span>
-          )}
-          <button
-            onClick={onRefresh}
-            disabled={loading}
-            className={`
-              text-xs font-medium px-3 py-1.5 rounded-lg border transition-all duration-300
-              ${loading
-                ? "border-white/[0.04] text-white/20 cursor-not-allowed"
-                : "border-white/[0.08] text-white/60 hover:border-[#00FF8C]/30 hover:text-[#00FF8C] hover:bg-[#00FF8C]/5"
-              }
-            `}
-          >
-            {loading ? "Caricamento..." : "Aggiorna"}
-          </button>
+        {/* Data */}
+        <div className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-xl bg-white/[0.03] border border-white/[0.06]">
+          <Navigation size={14} className="text-white/30" />
+          <span className="text-sm text-white/50 font-mono">
+            {new Date().toLocaleDateString("it-IT", {
+              day: "numeric",
+              month: "long",
+              year: "numeric",
+            })}
+          </span>
         </div>
       </div>
+
+      {/* Decorative line */}
+      <div className="relative h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
     </header>
   );
 }

@@ -20,7 +20,7 @@ function getTurbulenceLabel(level: number): string {
   return "Molto Forte";
 }
 
-export function TurbulenceIcon({ level, size = 20 }: TurbulenceIconProps) {
+export function TurbulenceIcon({ level, size = 18 }: TurbulenceIconProps) {
   const color = getTurbulenceColor(level);
   const label = getTurbulenceLabel(level);
 
@@ -30,9 +30,9 @@ export function TurbulenceIcon({ level, size = 20 }: TurbulenceIconProps) {
         size={size}
         color={color}
         className={level >= 4 ? "animate-pulse" : ""}
-        style={{ filter: level >= 4 ? `drop-shadow(0 0 4px ${color}60)` : "none" }}
+        style={{ filter: level >= 4 ? `drop-shadow(0 0 6px ${color}50)` : "none" }}
       />
-      <span className="text-[8px] text-white/40 uppercase tracking-wider">{label}</span>
+      <span className="text-[9px] text-white/40 uppercase tracking-wider font-medium">{label}</span>
     </div>
   );
 }

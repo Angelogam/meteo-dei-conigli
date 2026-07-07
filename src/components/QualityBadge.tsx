@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { getQualityColor, getQualityLabel } from "@/utils/weatherCalculations";
 import { ArrowUp, ArrowDown, Minus } from "lucide-react";
 
@@ -9,15 +9,16 @@ interface QualityBadgeProps {
   showLabel?: boolean;
 }
 
-function getGlowColor(score: number, color: string): string {
-  if (score >= 4) return `${color}80`;
-  return `${color}40`;
-}
-
 function getQualityIcon(score: number) {
   if (score >= 4) return ArrowUp;
   if (score >= 2.5) return Minus;
   return ArrowDown;
+}
+
+function getIconColor(score: number) {
+  if (score >= 4) return "#00FF8C";
+  if (score >= 2.5) return "#FFC857";
+  return "#FF4E4E";
 }
 
 export function QualityBadge({ score, size = "md", animated = true, showLabel = true }: QualityBadgeProps) {
@@ -26,10 +27,12 @@ export function QualityBadge({ score, size = "md", animated = true, showLabel = 
 
   const color = getQualityColor(score);
   const Icon = getQualityIcon(score);
+  const iconColor = getIconColor(score);
   const label = getQualityLabel(score);
 
-  const sizePx = size === "sm" ? 36 : size === "md" ? 48 : 64;
-  const fontSize = size === "sm" ? "text-xs" : size === "md" ? "text-base" : "text-xl";
+  const sizePx = size === "sm" ? 40 : size === "md" ? 52 : 72;
+  const fontSize = size === "sm" ? "text-base" : size === "md" ? "text-xl" : "text-3xl";
+  const iconSize = size === "sm" ? 10 : size === "md" ? 12 : 14;
 
   useEffect(() => {
     if (!animated) {
@@ -37,11 +40,10 @@ export function QualityBadge({ score, size = "md", animated = true, showLabel = 
       setVisible(true);
       return;
     }
-
     setVisible(false);
     const showTimer = setTimeout(() => setVisible(true), 100);
     const startTime = Date.now();
-    const duration = 800;
+    const duration = 700;
 
     const animate = () => {
       const elapsed = Date.now() - startTime;
@@ -51,26 +53,27 @@ export function QualityBadge({ score, size = "md", animated = true, showLabel = 
       if (progress < 1) requestAnimationFrame(animate);
     };
     requestAnimationFrame(animate);
-
     return () => clearTimeout(showTimer);
   }, [score, animated]);
 
   return (
-    <div className="flex flex-col items-center gap-1">
+    <div className="flex flex-col items-center gap-1.5">
       <div
         className="rounded-full flex items-center justify-center transition-all duration-500"
         style={{
           width: sizePx,
           height: sizePx,
-          backgroundColor: `${color}15`,
-          border: `2px solid ${color}`,
-          boxShadow: visible ? `0 0 20px ${getGlowColor(score, color)}` : "none",
+          background: `radial-gradient(circle at center, ${color}12, ${color}06)`,
+          border: `1.5px solid ${color}40`,
+          boxShadow: visible
+            ? `0 0 ${size === "lg" ? "24px" : "14px"} ${color}25, inset 0 0 ${size === "lg" ? "12px" : "6px"} ${color}08`
+            : "none",
           opacity: visible ? 1 : 0,
           transform: visible ? "scale(1)" : "scale(0.5)",
         }}
       >
         <span
-          className={`font-bold font-mono ${fontSize} transition-all duration-500`}
+          className={`font-bold font-mono tracking-tight ${fontSize} transition-all duration-500`}
           style={{ color }}
         >
           {Math.round(displayScore)}
@@ -78,8 +81,11 @@ export function QualityBadge({ score, size = "md", animated = true, showLabel = 
       </div>
       {showLabel && (
         <div className="flex items-center gap-1">
-          <Icon size={10} color={color} />
-          <span className="text-[9px] font-medium uppercase tracking-wider" style={{ color }}>
+          <Icon size={iconSize} color={iconColor} />
+          <span
+            className="text-[10px] font-semibold uppercase tracking-wider"
+            style={{ color: `${color}CC` }}
+          >
             {label}
           </span>
         </div>
