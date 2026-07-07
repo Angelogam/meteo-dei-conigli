@@ -45,16 +45,16 @@ export function DayTabs({ days }: DayTabsProps) {
             key={day.date}
             onClick={() => setActiveDay(idx)}
             className={`
-              flex-1 py-2 px-3 rounded-lg text-xs font-medium transition-all duration-300
+              flex-1 py-2.5 px-3 rounded-lg text-sm font-semibold transition-all duration-300
               ${idx === activeDay
-                ? "bg-white/10 text-white shadow-lg"
-                : "bg-white/[0.03] text-white/40 hover:bg-white/[0.06] hover:text-white/60"
+                ? "bg-white/15 text-white shadow-lg"
+                : "bg-white/[0.04] text-white/50 hover:bg-white/[0.08] hover:text-white/70"
               }
             `}
           >
             <div>{day.dayName}</div>
             <div
-              className="font-mono text-[10px] mt-0.5"
+              className="font-mono text-xs mt-0.5"
               style={{ color: getQualityColor(day.averageQuality) }}
             >
               {day.averageQuality.toFixed(1)}
@@ -91,7 +91,7 @@ export function DayTabs({ days }: DayTabsProps) {
       {firstHour && currentDay && (
         <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="rounded-xl border border-white/[0.06] bg-[#121212] p-4">
-            <h4 className="text-xs font-semibold text-white/60 uppercase tracking-widest mb-3">
+            <h4 className="text-sm font-semibold text-white/70 uppercase tracking-widest mb-3">
               Vento in Quota
             </h4>
             <WindProfileChart
@@ -102,7 +102,7 @@ export function DayTabs({ days }: DayTabsProps) {
             />
           </div>
           <div className="rounded-xl border border-white/[0.06] bg-[#121212] p-4">
-            <h4 className="text-xs font-semibold text-white/60 uppercase tracking-widest mb-3">
+            <h4 className="text-sm font-semibold text-white/70 uppercase tracking-widest mb-3">
               Termiche
             </h4>
             <ThermalChart hours={currentDay.hours} />
@@ -114,39 +114,39 @@ export function DayTabs({ days }: DayTabsProps) {
       {currentDay && (
         <div className="mt-4 rounded-xl border border-white/[0.06] bg-[#121212] overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full text-[10px]">
+            <table className="w-full text-xs">
               <thead>
                 <tr className="border-b border-white/[0.06]">
-                  <th className="text-left py-2 px-3 text-white/40 font-medium">Ora</th>
-                  <th className="text-left py-2 px-3 text-white/40 font-medium">Temp</th>
-                  <th className="text-left py-2 px-3 text-white/40 font-medium">Umid</th>
-                  <th className="text-left py-2 px-3 text-white/40 font-medium">Vento 10m</th>
-                  <th className="text-left py-2 px-3 text-white/40 font-medium">Vento 1500m</th>
-                  <th className="text-left py-2 px-3 text-white/40 font-medium">Vento 2500m</th>
-                  <th className="text-left py-2 px-3 text-white/40 font-medium">Vento 3500m</th>
-                  <th className="text-left py-2 px-3 text-white/40 font-medium">Nuvole</th>
-                  <th className="text-left py-2 px-3 text-white/40 font-medium">Termiche</th>
-                  <th className="text-left py-2 px-3 text-white/40 font-medium">Turbolenza</th>
-                  <th className="text-left py-2 px-3 text-white/40 font-medium">Quality</th>
+                  <th className="text-left py-2.5 px-3 text-white/60 font-semibold text-[11px]">Ora</th>
+                  <th className="text-left py-2.5 px-3 text-white/60 font-semibold text-[11px]">Temp</th>
+                  <th className="text-left py-2.5 px-3 text-white/60 font-semibold text-[11px]">Umid</th>
+                  <th className="text-left py-2.5 px-3 text-white/60 font-semibold text-[11px]">Vento 10m</th>
+                  <th className="text-left py-2.5 px-3 text-white/60 font-semibold text-[11px]">Vento 1500m</th>
+                  <th className="text-left py-2.5 px-3 text-white/60 font-semibold text-[11px]">Vento 2500m</th>
+                  <th className="text-left py-2.5 px-3 text-white/60 font-semibold text-[11px]">Vento 3500m</th>
+                  <th className="text-left py-2.5 px-3 text-white/60 font-semibold text-[11px]">Nuvole</th>
+                  <th className="text-left py-2.5 px-3 text-white/60 font-semibold text-[11px]">Termiche</th>
+                  <th className="text-left py-2.5 px-3 text-white/60 font-semibold text-[11px]">Turbolenza</th>
+                  <th className="text-left py-2.5 px-3 text-white/60 font-semibold text-[11px]">Quality</th>
                 </tr>
               </thead>
               <tbody>
                 {currentDay.hours.map((h) => (
                   <tr
                     key={h.hour}
-                    className="border-b border-white/[0.03] hover:bg-white/[0.02] transition-colors"
+                    className="border-b border-white/[0.03] hover:bg-white/[0.03] transition-colors"
                   >
-                    <td className="py-2 px-3 font-mono text-white/80">{formatHour(h.hour)}</td>
-                    <td className="py-2 px-3 font-mono text-white/60">{h.temp.toFixed(0)}°</td>
-                    <td className="py-2 px-3 font-mono text-white/60">{h.humidity.toFixed(0)}%</td>
-                    <td className="py-2 px-3 font-mono text-[#4DA3FF]">{h.windSpeed10m.toFixed(0)} km/h</td>
-                    <td className="py-2 px-3 font-mono text-[#4DA3FF]/70">{h.windSpeed1500m.toFixed(0)} km/h</td>
-                    <td className="py-2 px-3 font-mono text-[#4DA3FF]/50">{h.windSpeed2500m.toFixed(0)} km/h</td>
-                    <td className="py-2 px-3 font-mono text-[#4DA3FF]/30">{h.windSpeed3500m.toFixed(0)} km/h</td>
-                    <td className="py-2 px-3 font-mono text-white/60">{h.cloudCover.toFixed(0)}%</td>
-                    <td className="py-2 px-3 font-mono text-[#FF9F1C]">{h.thermalStrength.toFixed(1)} m/s</td>
-                    <td className="py-2 px-3 font-mono text-[#FFC857]">{h.turbulence}/5</td>
-                    <td className="py-2 px-3 font-mono font-bold" style={{ color: getQualityColor(h.qualityScore) }}>
+                    <td className="py-2.5 px-3 font-mono text-white/90 text-sm">{formatHour(h.hour)}</td>
+                    <td className="py-2.5 px-3 font-mono text-white/70">{h.temp.toFixed(0)}°</td>
+                    <td className="py-2.5 px-3 font-mono text-white/70">{h.humidity.toFixed(0)}%</td>
+                    <td className="py-2.5 px-3 font-mono text-[#4DA3FF] font-semibold">{h.windSpeed10m.toFixed(0)} km/h</td>
+                    <td className="py-2.5 px-3 font-mono text-[#7db8ff]">{h.windSpeed1500m.toFixed(0)} km/h</td>
+                    <td className="py-2.5 px-3 font-mono text-[#5890d0]">{h.windSpeed2500m.toFixed(0)} km/h</td>
+                    <td className="py-2.5 px-3 font-mono text-[#3a6a9e]">{h.windSpeed3500m.toFixed(0)} km/h</td>
+                    <td className="py-2.5 px-3 font-mono text-white/70">{h.cloudCover.toFixed(0)}%</td>
+                    <td className="py-2.5 px-3 font-mono text-[#FF9F1C] font-semibold">{h.thermalStrength.toFixed(1)} m/s</td>
+                    <td className="py-2.5 px-3 font-mono text-[#FFC857] font-semibold">{h.turbulence}/5</td>
+                    <td className="py-2.5 px-3 font-mono font-bold text-sm" style={{ color: getQualityColor(h.qualityScore) }}>
                       {h.qualityScore}
                     </td>
                   </tr>

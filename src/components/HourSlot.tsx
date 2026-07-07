@@ -31,13 +31,13 @@ export function HourSlot({ data, index = 0, visible = true }: HourSlotProps) {
       </div>
 
       {/* Temperature + Cloud cover */}
-      <div className="flex items-center justify-center gap-2 mb-2 text-[10px] text-white/50">
+      <div className="flex items-center justify-center gap-2 mb-2 text-xs text-white/60">
         <div className="flex items-center gap-1">
-          <Thermometer size={10} color="#FF9F1C" />
+          <Thermometer size={11} color="#FF9F1C" />
           {data.temp.toFixed(0)}°
         </div>
         <div className="flex items-center gap-1">
-          <Cloud size={10} color="#4DA3FF" />
+          <Cloud size={11} color="#4DA3FF" />
           {data.cloudCover.toFixed(0)}%
         </div>
       </div>
@@ -51,7 +51,7 @@ export function HourSlot({ data, index = 0, visible = true }: HourSlotProps) {
           showSpeed={false}
         />
       </div>
-      <div className="text-center text-[9px] text-white/40 font-mono mb-3">
+      <div className="text-center text-[11px] text-white/60 font-mono mb-3">
         {data.windSpeed10m.toFixed(0)} km/h
       </div>
 

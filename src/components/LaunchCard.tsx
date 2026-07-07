@@ -51,10 +51,10 @@ export function LaunchCard({ forecast, onSelect, index = 0, visible = true }: La
           </h3>
 
           {/* Day summaries */}
-          <div className="flex gap-3 mt-2">
+          <div className="flex gap-4 mt-2">
             {forecast.days.map((day) => (
-              <div key={day.date} className="flex items-center gap-1.5 text-[10px] text-white/50">
-                <Clock size={10} className="text-white/30" />
+              <div key={day.date} className="flex items-center gap-1.5 text-xs text-white/70">
+                <Clock size={11} className="text-white/40" />
                 <span>{getDayName(day.date)}</span>
                 <span
                   className="font-mono font-bold"
@@ -67,17 +67,17 @@ export function LaunchCard({ forecast, onSelect, index = 0, visible = true }: La
           </div>
 
           {/* Quick stats */}
-          <div className="flex gap-3 mt-2">
-            <div className="flex items-center gap-1 text-[10px] text-white/40">
-              <Wind size={10} color="#4DA3FF" />
+          <div className="flex gap-4 mt-2">
+            <div className="flex items-center gap-1 text-xs text-white/60">
+              <Wind size={12} color="#4DA3FF" />
               {forecast.days[0]?.hours[0]?.windSpeed10m.toFixed(0) ?? "--"} km/h
             </div>
-            <div className="flex items-center gap-1 text-[10px] text-white/40">
-              <Thermometer size={10} color="#FF9F1C" />
+            <div className="flex items-center gap-1 text-xs text-white/60">
+              <Thermometer size={12} color="#FF9F1C" />
               {forecast.days[0]?.hours[0]?.temp.toFixed(0) ?? "--"}°
             </div>
-            <div className="flex items-center gap-1 text-[10px] text-white/40">
-              <Cloud size={10} color="#4DA3FF" />
+            <div className="flex items-center gap-1 text-xs text-white/60">
+              <Cloud size={12} color="#4DA3FF" />
               {forecast.days[0]?.hours[0]?.cloudCover.toFixed(0) ?? "--"}%
             </div>
           </div>

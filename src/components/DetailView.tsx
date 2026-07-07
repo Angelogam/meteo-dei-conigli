@@ -41,13 +41,13 @@ export function DetailView({ forecast, onBack }: DetailViewProps) {
               <MiniMap lat={forecast.lat} lon={forecast.lon} size={80} />
               <div>
                 <h2 className="text-xl font-bold text-white">{forecast.siteName}</h2>
-                <div className="flex items-center gap-1.5 mt-1 text-[10px] text-white/40">
-                  <MapPin size={10} />
+                <div className="flex items-center gap-1.5 mt-1 text-xs text-white/60">
+                  <MapPin size={11} />
                   {forecast.lat.toFixed(4)}, {forecast.lon.toFixed(4)}
                 </div>
                 <div className="flex items-center gap-2 mt-2">
-                  <Wind size={12} color="#4DA3FF" />
-                  <span className="text-[10px] text-white/50 font-mono">
+                  <Wind size={13} color="#4DA3FF" />
+                  <span className="text-xs text-white/60 font-mono">
                     {forecast.days[0]?.hours[0]?.windSpeed10m.toFixed(0) ?? "--"} km/h suolo
                   </span>
                 </div>
@@ -67,20 +67,20 @@ export function DetailView({ forecast, onBack }: DetailViewProps) {
               return (
                 <div
                   key={day.date}
-                  className="rounded-lg border border-white/[0.04] bg-white/[0.02] p-2.5 text-center"
+                  className="rounded-lg border border-white/[0.04] bg-white/[0.02] p-3 text-center"
                 >
-                  <div className="text-[10px] text-white/50">{day.dayName}</div>
+                  <div className="text-xs text-white/60 font-medium">{day.dayName}</div>
                   <div
-                    className="text-sm font-bold font-mono mt-1"
+                    className="text-base font-bold font-mono mt-1"
                     style={{ color: getQualityColor(day.averageQuality) }}
                   >
                     {day.averageQuality.toFixed(1)}
                   </div>
-                  <div className="text-[8px] text-white/30 mt-0.5">
+                  <div className="text-[10px] text-white/45 mt-0.5">
                     {getQualityLabel(day.averageQuality)}
                   </div>
                   {bestHour && (
-                    <div className="text-[8px] text-white/30 mt-1">
+                    <div className="text-[10px] text-white/45 mt-1">
                       Migliore: {String(bestHour.hour).padStart(2, '0')}:00
                     </div>
                   )}

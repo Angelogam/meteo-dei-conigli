@@ -23,10 +23,10 @@ export function Header({ lastUpdated, onRefresh, loading }: HeaderProps) {
             <Navigation size={16} color="#00FF8C" />
           </div>
           <div>
-            <h1 className="text-sm font-bold text-white tracking-tight">
+            <h1 className="text-base font-bold text-white tracking-tight">
               Thermik<span className="text-[#00FF8C]">Vision</span>
             </h1>
-            <p className="text-[9px] text-white/30 uppercase tracking-widest">
+            <p className="text-[11px] text-white/50 uppercase tracking-widest">
               Free Flight Meteo
             </p>
           </div>
@@ -35,7 +35,7 @@ export function Header({ lastUpdated, onRefresh, loading }: HeaderProps) {
         {/* Right section */}
         <div className="flex items-center gap-3">
           {lastUpdated && (
-            <span className="text-[10px] text-white/30 hidden sm:block">
+            <span className="text-xs text-white/50 hidden sm:block">
               {timeAgo(lastUpdated)}
             </span>
           )}
@@ -43,10 +43,10 @@ export function Header({ lastUpdated, onRefresh, loading }: HeaderProps) {
             onClick={onRefresh}
             disabled={loading}
             className={`
-              text-[10px] font-medium px-3 py-1.5 rounded-lg border transition-all duration-300
+              text-xs font-medium px-3 py-1.5 rounded-lg border transition-all duration-300
               ${loading
                 ? "border-white/[0.04] text-white/20 cursor-not-allowed"
-                : "border-white/[0.08] text-white/50 hover:border-[#00FF8C]/30 hover:text-[#00FF8C] hover:bg-[#00FF8C]/5"
+                : "border-white/[0.08] text-white/60 hover:border-[#00FF8C]/30 hover:text-[#00FF8C] hover:bg-[#00FF8C]/5"
               }
             `}
           >

@@ -45,9 +45,9 @@ function LoadingSkeleton() {
 function EmptyState() {
   return (
     <div className="flex flex-col items-center justify-center py-20 text-center">
-      <Wind size={32} className="text-white/10 mb-4" />
-      <p className="text-sm text-white/30">Nessun decollo trovato</p>
-      <p className="text-[10px] text-white/20 mt-1">Prova a modificare la ricerca</p>
+      <Wind size={36} className="text-white/20 mb-4" />
+      <p className="text-base text-white/50">Nessun decollo trovato</p>
+      <p className="text-sm text-white/30 mt-1">Prova a modificare la ricerca</p>
     </div>
   );
 }
@@ -112,10 +112,10 @@ export default function Index() {
       <main className="max-w-6xl mx-auto px-4 py-6">
         {/* Hero headline */}
         <div className="mb-6">
-          <h2 className="text-lg font-bold text-white/90">
+          <h2 className="text-xl font-bold text-white">
             Previsioni Volo Libero
           </h2>
-          <p className="text-[11px] text-white/30 mt-1">
+          <p className="text-sm text-white/50 mt-1">
             {loading
               ? "Caricamento dati meteo in corso..."
               : `${allForecasts.length} decolli · 3 giorni · Dati Open-Meteo LIVE`
@@ -132,7 +132,7 @@ export default function Index() {
         {!searchQuery && allForecasts.length > 0 && (
           <div className="flex gap-2 mb-4">
             <button
-              className="text-[10px] px-3 py-1 rounded-full border border-[#00FF8C]/20 text-[#00FF8C]/60 bg-[#00FF8C]/5 font-medium"
+              className="text-xs px-3 py-1.5 rounded-full border border-[#00FF8C]/30 text-[#00FF8C]/80 bg-[#00FF8C]/8 font-medium"
             >
               Tutti ({allForecasts.length})
             </button>
@@ -141,8 +141,8 @@ export default function Index() {
 
         {/* Error */}
         {error && (
-          <div className="rounded-xl border border-[#FF4E4E]/20 bg-[#FF4E4E]/5 p-4 mb-4">
-            <p className="text-xs text-[#FF4E4E]/80">{error}</p>
+          <div className="rounded-xl border border-[#FF4E4E]/20 bg-[#FF4E4E]/8 p-4 mb-4">
+            <p className="text-sm text-[#FF4E4E]/90">{error}</p>
           </div>
         )}
 
@@ -170,14 +170,14 @@ export default function Index() {
         {/* Unloaded sites matching search */}
         {filteredSites.length > 0 && (
           <div className="mt-4">
-            <p className="text-[10px] text-white/20 uppercase tracking-widest mb-2">
+            <p className="text-xs text-white/40 uppercase tracking-widest mb-2 font-medium">
               In attesa di dati
             </p>
             <div className="space-y-1">
               {filteredSites.map((site) => (
                 <div
                   key={site.id}
-                  className="rounded-lg border border-white/[0.04] bg-[#121212] px-4 py-2 text-xs text-white/40"
+                  className="rounded-lg border border-white/[0.06] bg-[#121212] px-4 py-2.5 text-sm text-white/60"
                 >
                   {site.name}
                 </div>
@@ -193,7 +193,7 @@ export default function Index() {
 
         {/* Footer */}
         <div className="mt-8 pt-4 border-t border-white/[0.04] text-center">
-          <p className="text-[9px] text-white/20">
+          <p className="text-xs text-white/30">
             Dati Open-Meteo · Aggiornamento ogni 3 ore · {lastUpdated?.toLocaleTimeString() ?? "--"}
           </p>
         </div>
