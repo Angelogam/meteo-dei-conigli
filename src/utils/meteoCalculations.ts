@@ -7,10 +7,8 @@ export function getWeatherIcon(code: number, isDay: boolean): string {
   const map: Record<number, string> = {
     0: isDay ? '☀️' : '🌙', 1: '🌤️', 2: '⛅', 3: '☁️',
     45: '🌫️', 48: '🌫️', 51: '🌦️', 53: '🌧️', 55: '🌧️',
-    56: '🌦️', 57: '🌦️', 61: '🌧️', 63: '🌧️', 65: '🌧️',
-    66: '🌧️', 67: '🌧️', 71: '❄️', 73: '❄️', 75: '❄️',
-    77: '❄️', 80: '🌧️', 81: '🌧️', 82: '⛈️', 85: '❄️', 86: '❄️',
-    95: '⛈️', 96: '⛈️', 99: '⛈️',
+    61: '🌧️', 63: '🌧️', 65: '🌧️', 71: '❄️', 73: '❄️', 75: '❄️',
+    80: '🌧️', 81: '🌧️', 82: '⛈️', 95: '⛈️', 96: '⛈️', 99: '⛈️',
   };
   return map[code] || (isDay ? '☀️' : '🌙');
 }
@@ -22,8 +20,7 @@ export function getDayLabel(dateStr: string): string {
   tomorrow.setDate(tomorrow.getDate() + 1);
   if (d.toDateString() === today.toDateString()) return 'Oggi';
   if (d.toDateString() === tomorrow.toDateString()) return 'Domani';
-  const days = ['Dom', 'Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab'];
-  return days[d.getDay()];
+  return d.toLocaleDateString('it-IT', { weekday: 'short' });
 }
 
 export function formatHour(h: number): string {
