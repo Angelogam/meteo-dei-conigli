@@ -1,181 +1,38 @@
 "use client";
 
 import React, { useEffect, useState, useMemo } from "react";
-
-/* ============================
-   DATI DECOLLI (dal tuo KML)
-   ============================ */
-
-const DECOLLI = [
-  { id: "malanotte", name: "Malanotte", lat: 44.25874571728482, lon: 7.794304664370852, elevation: 1350, exposure: "S/SE", valley: "Valle Infernotto", difficulty: 3 },
-  { id: "colle_di_tenda", name: "Colle di Tenda", lat: 44.15093973937469, lon: 7.569262924652476, elevation: 1870, exposure: "S", valley: "Valle Roya/Vermenagna", difficulty: 2 },
-  { id: "boves", name: "Boves", lat: 44.32113720462757, lon: 7.544697617792515, elevation: 900, exposure: "S", valley: "Cuneese", difficulty: 1 },
-  { id: "monte_male", name: "Monte Male – Dronero", lat: 44.43163071064606, lon: 7.362886778152897, elevation: 1500, exposure: "S", valley: "Valle Maira", difficulty: 3 },
-  { id: "iretta", name: "Iretta", lat: 44.49893744007536, lon: 7.382036612070795, elevation: 1300, exposure: "S", valley: "Valle Maira", difficulty: 2 },
-  { id: "val_mala", name: "Pratoni di Val Mala", lat: 44.50780117336976, lon: 7.346618978966227, elevation: 1400, exposure: "S", valley: "Valle Maira", difficulty: 2 },
-  { id: "birrone", name: "Monte Birrone", lat: 44.5398927839592, lon: 7.25293945830122, elevation: 2130, exposure: "S", valley: "Valle Maira", difficulty: 4 },
-  { id: "agnello", name: "Colle dell'Agnello", lat: 44.68282592463814, lon: 6.978200601250462, elevation: 2684, exposure: "S", valley: "Valle Varaita", difficulty: 5 },
-  { id: "pian_mune_alto", name: "Pian Munè – Seggiovia", lat: 44.63861029121272, lon: 7.230889474766025, elevation: 1500, exposure: "S/SW", valley: "Valle Po", difficulty: 2 },
-  { id: "pian_mune_basso", name: "Pian Munè – Bric Lombatera", lat: 44.65736521807557, lon: 7.260017009542715, elevation: 1350, exposure: "S", valley: "Valle Po", difficulty: 1 },
-  { id: "martiniana_po", name: "Martiniana Po", lat: 44.60695265332723, lon: 7.38322612877631, elevation: 900, exposure: "S", valley: "Valle Po", difficulty: 1 },
-  { id: "rucas_alto", name: "Rucas alto", lat: 44.74213930591463, lon: 7.220118689737356, elevation: 1500, exposure: "S/SE", valley: "Valle Infernotto", difficulty: 2 },
-  { id: "montoso_basso", name: "Montoso – decollo basso", lat: 44.7643723437882, lon: 7.249757926713178, elevation: 1250, exposure: "SE", valley: "Valle Infernotto", difficulty: 1 },
-  { id: "vandalino", name: "Monte Vandalino", lat: 44.83671231480542, lon: 7.173866924055591, elevation: 2120, exposure: "S/SE", valley: "Val Pellice", difficulty: 4 },
-  { id: "pian_dell_alpe", name: "Pian dell'Alpe", lat: 45.06396153999711, lon: 7.028266530872771, elevation: 1700, exposure: "S", valley: "Val Chisone", difficulty: 3 },
-  { id: "roletto", name: "Roletto – Piggi", lat: 44.93249288285819, lon: 7.310959031722244, elevation: 820, exposure: "S", valley: "Pinerolese", difficulty: 1 },
-  { id: "piossasco", name: "Piossasco – Monte S. Giorgio", lat: 44.99671840144012, lon: 7.44800217882953, elevation: 673, exposure: "S", valley: "Collina Torinese", difficulty: 1 },
-  { id: "truccetti", name: "Truccetti", lat: 45.07973511679036, lon: 7.342018342463826, elevation: 900, exposure: "S", valley: "Canavese", difficulty: 1 },
-  { id: "val_della_torre", name: "Val della Torre", lat: 45.16262748864921, lon: 7.463716167415302, elevation: 970, exposure: "S", valley: "Val della Torre", difficulty: 1 },
-  { id: "rocca_canavese", name: "Rocca Canavese – M. della Neve", lat: 45.32757754837493, lon: 7.572793582322621, elevation: 1100, exposure: "S", valley: "Canavese", difficulty: 2 },
-  { id: "s_elisabetta", name: "Santa Elisabetta", lat: 45.4182733880574, lon: 7.641945041749434, elevation: 900, exposure: "S", valley: "Canavese", difficulty: 1 },
-  { id: "s_elisabetta_alto", name: "Santa Elisabetta alto", lat: 45.44019393073506, lon: 7.648025947229948, elevation: 1100, exposure: "S", valley: "Canavese", difficulty: 2 },
-  { id: "cavallaria", name: "Monte Cavallaria", lat: 45.51729363773779, lon: 7.798808327293107, elevation: 1300, exposure: "S", valley: "Canavese", difficulty: 2 },
-  { id: "andrate", name: "Andrate", lat: 45.55063933418272, lon: 7.880775591143394, elevation: 1000, exposure: "S", valley: "Canavese", difficulty: 1 },
-];
-
-/* ============================
-   FETCH METEO REALE
-   ============================ */
-
-async function fetchMeteo(lat, lon) {
-  const url =
-    `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}` +
-    `&hourly=temperature_2m,dewpoint_2m,relativehumidity_2m,cloudcover,precipitation,visibility,wind_speed_10m,wind_gusts_10m,wind_direction_10m` +
-    `&daily=temperature_2m_max,temperature_2m_min` +
-    `&timezone=auto`;
-
-  const r = await fetch(url);
-  const d = await r.json();
-
-  const h = d.hourly;
-  const i = 12; // mezzogiorno
-
-  // Calcola delta termico (differenza tra max e min del giorno)
-  const dailyMax = d.daily.temperature_2m_max[0] || h.temperature_2m[i] + 5;
-  const dailyMin = d.daily.temperature_2m_min[0] || h.temperature_2m[i] - 5;
-  const thermalDelta = dailyMax - dailyMin;
-
-  return {
-    temperature: h.temperature_2m[i],
-    dewPoint: h.dewpoint_2m[i],
-    humidity: h.relativehumidity_2m[i],
-    cloudCover: h.cloudcover[i],
-    precipitation: h.precipitation[i] || 0,
-    visibilityKm: h.visibility ? h.visibility[i] / 1000 : 40,
-    windSurface: h.wind_speed_10m[i],
-    windGust: h.wind_gusts_10m ? h.wind_gusts_10m[i] : h.wind_speed_10m[i] + 8,
-    windDir: h.wind_direction_10m[i],
-    thermalDelta: Math.round(thermalDelta),
-  };
-}
-
-/* ============================
-   ALGORITMI AVANZATI
-   ============================ */
-
-function calculateDetailedScore(m, site) {
-  let scores = {
-    wind: 0,
-    thermal: 0,
-    cloud: 0,
-    visibility: 0,
-    precipitation: 0,
-    total: 0
-  };
-
-  // Vento (peso 30%)
-  if (m.windSurface < 10) scores.wind = 5;
-  else if (m.windSurface < 18) scores.wind = 4;
-  else if (m.windSurface < 25) scores.wind = 3;
-  else if (m.windSurface < 35) scores.wind = 2;
-  else scores.wind = 1;
-
-  // Termica (peso 25%)
-  const thermalScore = m.thermalDelta;
-  if (thermalScore > 12) scores.thermal = 5;
-  else if (thermalScore > 8) scores.thermal = 4;
-  else if (thermalScore > 5) scores.thermal = 3;
-  else if (thermalScore > 3) scores.thermal = 2;
-  else scores.thermal = 1;
-
-  // Nuvolosità (peso 20%)
-  if (m.cloudCover < 20) scores.cloud = 5;
-  else if (m.cloudCover < 40) scores.cloud = 4;
-  else if (m.cloudCover < 60) scores.cloud = 3;
-  else if (m.cloudCover < 80) scores.cloud = 2;
-  else scores.cloud = 1;
-
-  // Visibilità (peso 15%)
-  if (m.visibilityKm > 20) scores.visibility = 5;
-  else if (m.visibilityKm > 10) scores.visibility = 4;
-  else if (m.visibilityKm > 5) scores.visibility = 3;
-  else if (m.visibilityKm > 2) scores.visibility = 2;
-  else scores.visibility = 1;
-
-  // Precipitazioni (peso 10%)
-  if (m.precipitation === 0) scores.precipitation = 5;
-  else if (m.precipitation < 0.5) scores.precipitation = 4;
-  else if (m.precipitation < 1) scores.precipitation = 3;
-  else if (m.precipitation < 2) scores.precipitation = 2;
-  else scores.precipitation = 1;
-
-  // Calcolo totale ponderato
-  scores.total = Math.round(
-    scores.wind * 0.30 +
-    scores.thermal * 0.25 +
-    scores.cloud * 0.20 +
-    scores.visibility * 0.15 +
-    scores.precipitation * 0.10
-  );
-
-  // Aggiustamento per difficoltà del sito
-  if (site.difficulty >= 4 && scores.total > 3) {
-    scores.total = Math.max(1, scores.total - 1);
-  }
-
-  return scores;
-}
-
-function getScoreColor(score) {
-  return ["#ff1744", "#ff6d00", "#ffd600", "#00e676", "#00c853"][score - 1];
-}
-
-function getScoreLabel(score) {
-  return ["Pericoloso", "Difficile", "Discreto", "Buono", "Eccellente"][score - 1];
-}
-
-function getWindDirection(degrees) {
-  const directions = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
-  return directions[Math.round(degrees / 45) % 8];
-}
-
-function isWindFavorable(windDir, exposure) {
-  const windStr = getWindDirection(windDir);
-  const expDirs = exposure.split('/').map(d => d.trim());
-  return expDirs.some(exp => windStr === exp || windStr === exp + 'E' || windStr === exp + 'W');
-}
-
-/* ============================
-   APP PRINCIPALE
-   ============================ */
+import {
+  DECOLLI,
+  fetchMeteoCompleta,
+  getWeatherDescription,
+  getWindDirection,
+  getThermalStrength,
+  getCrossCountryRating,
+  getFlightAdvice,
+  FullMeteoData,
+  DailySummary,
+  LaunchSite,
+} from "@/utils/weatherForecast";
+import { WeatherIcon, getWeatherIconType } from "@/components/WeatherIcon";
 
 export default function App() {
   const [selected, setSelected] = useState(DECOLLI[0].id);
-  const [meteo, setMeteo] = useState(null);
+  const [meteoData, setMeteoData] = useState<FullMeteoData | null>(null);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  
-  const site = useMemo(() => DECOLLI.find((x) => x.id === selected), [selected]);
-  const scores = meteo ? calculateDetailedScore(meteo, site) : null;
-  const totalScore = scores ? scores.total : 3;
+  const [error, setError] = useState<string | null>(null);
+  const [selectedDay, setSelectedDay] = useState(0);
+  const [selectedHour, setSelectedHour] = useState(12);
+
+  const site = DECOLLI.find((x) => x.id === selected) as LaunchSite;
 
   useEffect(() => {
+    if (!site) return;
     const fetchData = async () => {
       setLoading(true);
       setError(null);
       try {
-        const data = await fetchMeteo(site.lat, site.lon);
-        setMeteo(data);
+        const data = await fetchMeteoCompleta(site.lat, site.lon);
+        setMeteoData(data);
       } catch (err) {
         setError("Errore nel caricamento dei dati meteo");
         console.error(err);
@@ -184,46 +41,102 @@ export default function App() {
       }
     };
     fetchData();
-  }, [selected, site]);
+  }, [selected]);
 
-  const windFavorable = meteo && site ? isWindFavorable(meteo.windDir, site.exposure) : false;
+  const enrichedDailyData: DailySummary[] = useMemo(() => {
+    if (!meteoData) return [];
+    return meteoData.daily;
+  }, [meteoData]);
+
+  const dateLabels = enrichedDailyData.map((d) =>
+    d.date.toLocaleDateString("it-IT", { weekday: "short", day: "numeric", month: "short" })
+  );
+
+  const dayData = useMemo(() => {
+    if (!meteoData) return null;
+    const today = new Date();
+    const dayStart = new Date(today);
+    dayStart.setDate(today.getDate() + selectedDay);
+    dayStart.setHours(0, 0, 0, 0);
+    const dayEnd = new Date(dayStart);
+    dayEnd.setDate(dayEnd.getDate() + 1);
+    return meteoData.hourly.filter((h) => h.time >= dayStart && h.time < dayEnd);
+  }, [meteoData, selectedDay]);
+
+  const currentData = useMemo(() => {
+    if (!dayData || dayData.length === 0) return null;
+    return dayData[Math.min(selectedHour, dayData.length - 1)];
+  }, [dayData, selectedHour]);
+
+  const thermalDelta = useMemo(() => {
+    if (!dayData || dayData.length === 0) return 0;
+    const temps = dayData.map((h) => h.temperature).filter((t) => t !== undefined && t !== null);
+    if (temps.length === 0) return 0;
+    return Math.round(Math.max(...temps) - Math.min(...temps));
+  }, [dayData]);
+
+  if (loading) {
+    return (
+      <div style={styles.loadingFull}>
+        <div style={styles.spinner} />
+        <p style={styles.loadingText}>Caricamento previsioni meteo…</p>
+        <p style={styles.loadingSub}>Open-Meteo &bull; Free Flight Forecast</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div style={styles.errorFull}>
+        <p style={styles.errorText}>{error}</p>
+        <button style={styles.retryButton} onClick={() => window.location.reload()}>
+          Riprova
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div style={styles.app}>
       <header style={styles.header}>
-        <h1 style={styles.title}>🪂 FlyCast Pro</h1>
-        <p style={styles.subtitle}>Previsioni per volo in parapendio</p>
+        <h1 style={styles.title}>
+          <WeatherIcon type="wind" size={32} color="#ff6b6b" />
+          {" "}Meteo dei Conigli
+        </h1>
+        <p style={styles.subtitle}>Previsioni per volo libero &bull; Dati da Open-Meteo</p>
       </header>
 
       <div style={styles.grid}>
         {/* LISTA DECOLLI */}
         <div style={styles.left}>
-          <h2 style={styles.sectionTitle}>📍 Decolli</h2>
+          <h2 style={styles.sectionTitle}>
+            <WeatherIcon type="mountain" size={18} color="#4fc3f7" />
+            {" "}Decolli
+          </h2>
           <div style={styles.cardList}>
             {DECOLLI.map((d) => (
               <button
                 key={d.id}
-                onClick={() => setSelected(d.id)}
+                onClick={() => { setSelected(d.id); setSelectedDay(0); setSelectedHour(12); }}
                 style={{
                   ...styles.card,
-                  borderColor: d.id === selected ? '#4fc3f7' : '#333',
-                  background: d.id === selected ? 'rgba(79, 195, 247, 0.1)' : '#222',
+                  borderColor: d.id === selected ? "#ff6b6b" : "#333",
+                  background: d.id === selected ? "rgba(255,107,107,0.08)" : "#222",
                 }}
               >
-                <div style={styles.cardTitle}>{d.name}</div>
-                <div style={styles.cardDetails}>
-                  <span style={styles.cardSmall}>{d.valley}</span>
-                  <span style={styles.cardSmall}>
-                    {d.elevation}m • {d.exposure}
+                <div style={styles.cardHeader}>
+                  <span style={styles.cardTitle}>{d.name}</span>
+                  <span style={{
+                    ...styles.difficultyBadge,
+                    backgroundColor: d.difficulty <= 2 ? "#1b5e20" : d.difficulty <= 3 ? "#e65100" : "#b71c1c",
+                    color: d.difficulty <= 2 ? "#81c784" : d.difficulty <= 3 ? "#ffcc80" : "#ef9a9a",
+                  }}>
+                    {d.difficulty <= 2 ? "Facile" : d.difficulty <= 3 ? "Medio" : "Diff."}
                   </span>
                 </div>
-                <div style={styles.cardBadges}>
-                  <span style={{
-                    ...styles.badge,
-                    background: d.difficulty <= 2 ? '#4caf50' : d.difficulty <= 3 ? '#ff9800' : '#f44336'
-                  }}>
-                    {d.difficulty <= 2 ? 'Facile' : d.difficulty <= 3 ? 'Medio' : 'Difficile'}
-                  </span>
+                <div style={styles.cardDetails}>
+                  <span>{d.valley}</span>
+                  <span>{d.elevation ? `${d.elevation}m` : "—"} &bull; {d.exposure}</span>
                 </div>
               </button>
             ))}
@@ -232,166 +145,246 @@ export default function App() {
 
         {/* DETTAGLIO */}
         <div style={styles.right}>
-          <div style={styles.siteHeader}>
-            <h2 style={styles.siteName}>{site.name}</h2>
-            <span style={styles.siteInfo}>
-              {site.elevation}m • {site.exposure} • {site.valley}
-            </span>
-          </div>
-
-          {loading && (
-            <div style={styles.loadingContainer}>
-              <div style={styles.spinner}></div>
-              <p style={styles.loadingText}>Caricamento meteo...</p>
-            </div>
-          )}
-
-          {error && (
-            <div style={styles.errorContainer}>
-              <p style={styles.errorText}>{error}</p>
-              <button style={styles.retryButton} onClick={() => window.location.reload()}>
-                Riprova
-              </button>
-            </div>
-          )}
-
-          {meteo && scores && (
-            <div style={styles.meteoContainer}>
-              {/* SCORE PRINCIPALE */}
-              <div style={{...styles.scoreBox, borderColor: getScoreColor(totalScore)}}>
-                <div style={styles.scoreMain}>
-                  <div style={styles.scoreNumber}>{totalScore}</div>
-                  <div style={styles.scoreLabel}>{getScoreLabel(totalScore)}</div>
+          {currentData && site && (
+            <>
+              {/* HEADER SITO */}
+              <div style={styles.siteHeader}>
+                <div>
+                  <h2 style={styles.siteName}>
+                    <WeatherIcon type="mountain" size={22} color="#81d4fa" />
+                    {" "}{site.name}
+                  </h2>
+                  <span style={styles.siteInfo}>
+                    {site.elevation ? `${site.elevation}m` : "Alt. da verificare"} &bull; {site.exposure} &bull; {site.valley}
+                  </span>
                 </div>
-                <div style={styles.scoreDetails}>
-                  <div style={styles.scoreDetail}>
-                    <span>💨 Vento</span>
-                    <span style={{color: getScoreColor(scores.wind)}}>{scores.wind}/5</span>
-                  </div>
-                  <div style={styles.scoreDetail}>
-                    <span>🔥 Termica</span>
-                    <span style={{color: getScoreColor(scores.thermal)}}>{scores.thermal}/5</span>
-                  </div>
-                  <div style={styles.scoreDetail}>
-                    <span>☁️ Nuvolosità</span>
-                    <span style={{color: getScoreColor(scores.cloud)}}>{scores.cloud}/5</span>
-                  </div>
+                <div style={styles.weatherNow}>
+                  <WeatherIcon
+                    type={getWeatherIconType(currentData.cloudCover, currentData.precipitation, currentData.isDay)}
+                    size={40}
+                    color="#ffd93d"
+                  />
+                  <span style={styles.tempNow}>{Math.round(currentData.temperature)}&deg;C</span>
                 </div>
               </div>
 
-              {/* METEO DETTAGLIATO */}
+              {/* SELEZIONE GIORNO */}
+              <div style={styles.daySelector}>
+                {enrichedDailyData.map((day, index) => (
+                  <button
+                    key={index}
+                    onClick={() => { setSelectedDay(index); setSelectedHour(12); }}
+                    style={{
+                      ...styles.dayButton,
+                      background: selectedDay === index ? "rgba(255,107,107,0.15)" : "rgba(255,255,255,0.04)",
+                      borderColor: selectedDay === index ? "#ff6b6b" : "rgba(255,255,255,0.08)",
+                    }}
+                  >
+                    <div style={styles.dayName}>{dateLabels[index]}</div>
+                    <div style={{ display: "flex", alignItems: "center", gap: 4, justifyContent: "center", margin: "4px 0" }}>
+                      <WeatherIcon type={getWeatherIconType(50, 0, 1)} size={18} color="#aaa" />
+                    </div>
+                    <div style={styles.dayTemp}>
+                      {Math.round(day.tempMax)}&deg;/{Math.round(day.tempMin)}&deg;
+                    </div>
+                    <div style={styles.dayDelta}>&Delta;{day.thermalDelta}&deg;C</div>
+                    <div style={styles.dayWeather}>{getWeatherDescription(day.weatherCode)}</div>
+                  </button>
+                ))}
+              </div>
+
+              {/* SELEZIONE ORA */}
+              <div style={styles.hourSelector}>
+                <label style={styles.hourLabel}>
+                  <WeatherIcon type="clock" size={14} color="#888" />
+                  {" "}Ora:
+                </label>
+                <input
+                  type="range"
+                  min="0"
+                  max="23"
+                  value={selectedHour}
+                  onChange={(e) => setSelectedHour(parseInt(e.target.value))}
+                  style={styles.hourSlider}
+                />
+                <span style={styles.hourValue}>{String(selectedHour).padStart(2, "0")}:00</span>
+              </div>
+
+              {/* METEO CARDS */}
               <div style={styles.meteoGrid}>
                 <div style={styles.meteoCard}>
-                  <div style={styles.meteoLabel}>🌡️ Temperatura</div>
-                  <div style={styles.meteoValue}>{meteo.temperature}°C</div>
-                  <div style={styles.meteoSub}>Delta termico: {meteo.thermalDelta}°C</div>
+                  <div style={styles.meteoLabel}>
+                    <WeatherIcon type="thermometer" size={16} color="#ff6b6b" /> Temperatura
+                  </div>
+                  <div style={styles.meteoValue}>{Math.round(currentData.temperature)}&deg;C</div>
+                  <div style={styles.meteoSub}>Delta termico: {thermalDelta}&deg;C</div>
                 </div>
                 <div style={styles.meteoCard}>
-                  <div style={styles.meteoLabel}>💧 Umidità</div>
-                  <div style={styles.meteoValue}>{meteo.humidity}%</div>
-                  <div style={styles.meteoSub}>Punto di rugiada: {meteo.dewPoint}°C</div>
-                </div>
-                <div style={styles.meteoCard}>
-                  <div style={styles.meteoLabel}>☁️ Nuvolosità</div>
-                  <div style={styles.meteoValue}>{meteo.cloudCover}%</div>
+                  <div style={styles.meteoLabel}>
+                    <WeatherIcon type="wind" size={16} color="#81d4fa" /> Vento
+                  </div>
+                  <div style={styles.meteoValue}>{Math.round(currentData.windSpeed)} km/h</div>
                   <div style={styles.meteoSub}>
-                    <span style={{color: meteo.cloudCover < 40 ? '#4caf50' : meteo.cloudCover < 70 ? '#ff9800' : '#f44336'}}>
-                      {meteo.cloudCover < 40 ? 'Buona visibilità' : meteo.cloudCover < 70 ? 'Nuvolosità moderata' : 'Cielo coperto'}
-                    </span>
+                    {getWindDirection(currentData.windDir)} &bull; Raffiche: {Math.round(currentData.windGust)} km/h
                   </div>
                 </div>
                 <div style={styles.meteoCard}>
-                  <div style={styles.meteoLabel}>💨 Vento</div>
-                  <div style={styles.meteoValue}>{meteo.windSurface} km/h</div>
+                  <div style={styles.meteoLabel}>
+                    <WeatherIcon type="cloud" size={16} color="#b0bec5" /> Nuvolosità
+                  </div>
+                  <div style={styles.meteoValue}>{Math.round(currentData.cloudCover)}%</div>
                   <div style={styles.meteoSub}>
-                    {getWindDirection(meteo.windDir)} • Raffiche: {meteo.windGust} km/h
-                    {windFavorable && <span style={{color: '#4caf50', marginLeft: 8}}>✅ Favorevole</span>}
+                    {currentData.cloudCover < 30 ? "Cielo sereno" : currentData.cloudCover < 60 ? "Nuvole moderate" : "Cielo coperto"}
                   </div>
                 </div>
                 <div style={styles.meteoCard}>
-                  <div style={styles.meteoLabel}>🌧️ Precipitazioni</div>
+                  <div style={styles.meteoLabel}>
+                    <WeatherIcon type="droplet" size={16} color="#4fc3f7" /> Umidità
+                  </div>
+                  <div style={styles.meteoValue}>{Math.round(currentData.humidity)}%</div>
+                  <div style={styles.meteoSub}>Punto di rugiada: {Math.round(currentData.dewPoint)}&deg;C</div>
+                </div>
+                <div style={styles.meteoCard}>
+                  <div style={styles.meteoLabel}>
+                    <WeatherIcon type="rain" size={16} color="#4da3ff" /> Precipitazioni
+                  </div>
                   <div style={styles.meteoValue}>
-                    {meteo.precipitation === 0 ? 'Assenti' : `${meteo.precipitation} mm/h`}
+                    {currentData.precipitation === 0 ? "Assenti" : `${currentData.precipitation.toFixed(1)} mm/h`}
                   </div>
                   <div style={styles.meteoSub}>
-                    {meteo.precipitation === 0 ? '✅ Ideale per volare' : '⚠️ Possibili piogge'}
+                    {currentData.precipitation === 0 ? "Ideale per volare" : "Possibili piogge"}
                   </div>
                 </div>
                 <div style={styles.meteoCard}>
-                  <div style={styles.meteoLabel}>👁️ Visibilità</div>
-                  <div style={styles.meteoValue}>{meteo.visibilityKm} km</div>
+                  <div style={styles.meteoLabel}>
+                    <WeatherIcon type="eye" size={16} color="#aed581" /> Visibilità
+                  </div>
+                  <div style={styles.meteoValue}>{Math.round(currentData.visibility)} km</div>
                   <div style={styles.meteoSub}>
-                    {meteo.visibilityKm > 15 ? 'Ottima' : meteo.visibilityKm > 8 ? 'Buona' : 'Limitata'}
+                    {currentData.visibility > 20 ? "Ottima" : currentData.visibility > 10 ? "Buona" : "Limitata"}
                   </div>
                 </div>
               </div>
 
-              {/* PLAFOND E CONSIGLI */}
-              <div style={styles.advancedInfo}>
-                <div style={styles.plafondBox}>
-                  <h3 style={styles.adviceTitle}>📊 Plafond stimato</h3>
-                  <div style={styles.plafondVisual}>
-                    <div style={styles.plafondBarContainer}>
-                      <div style={{
-                        ...styles.plafondBar,
-                        height: `${Math.min(100, (site.elevation + 1500) / 3000 * 100)}%`,
-                        background: `linear-gradient(to top, #4fc3f7, #00e676)`
-                      }}></div>
-                    </div>
-                    <div style={styles.plafondInfo}>
-                      <div style={styles.plafondValue}>{site.elevation + 1500} m</div>
-                      <div style={styles.plafondLabel}>Quota massima raggiungibile</div>
-                      <div style={styles.plafondSub}>Base decollo: {site.elevation}m</div>
-                    </div>
+              {/* TERMICHE E CROSS */}
+              <div style={styles.thermalBox}>
+                <div style={styles.thermalLeft}>
+                  <h3 style={styles.thermalTitle}>
+                    <WeatherIcon type="flame" size={18} color="#ff6b6b" /> Forza delle termiche
+                  </h3>
+                  <div style={styles.thermalValue}>
+                    {getThermalStrength(currentData.temperature, currentData.cloudCover, currentData.humidity, thermalDelta).label}
+                  </div>
+                  <div style={styles.thermalDetail}>Delta termico: {thermalDelta}&deg;C</div>
+                </div>
+                <div style={styles.thermalRight}>
+                  <h3 style={styles.thermalTitle}>
+                    <WeatherIcon type="plane" size={18} color="#81d4fa" /> Cross Country
+                  </h3>
+                  <div style={styles.crossValue}>
+                    {getCrossCountryRating(
+                      getThermalStrength(currentData.temperature, currentData.cloudCover, currentData.humidity, thermalDelta).value,
+                      currentData.windSpeed,
+                      currentData.cloudCover,
+                      currentData.visibility
+                    ).label}
                   </div>
                 </div>
+              </div>
 
-                <div style={styles.adviceBox}>
-                  <h3 style={styles.adviceTitle}>💡 Consigli per il volo</h3>
-                  <ul style={styles.adviceList}>
-                    {totalScore >= 4 && (
-                      <li style={styles.adviceItem}>✅ Condizioni eccellenti per volare!</li>
-                    )}
-                    {totalScore === 3 && (
-                      <li style={styles.adviceItem}>⚠️ Condizioni discrete, valutare attentamente</li>
-                    )}
-                    {totalScore <= 2 && (
-                      <li style={styles.adviceItem}>❌ Condizioni difficili, sconsigliato volare</li>
-                    )}
-                    {meteo.windSurface > 25 && (
-                      <li style={styles.adviceItem}>⚠️ Vento forte ({meteo.windSurface} km/h), attenzione</li>
-                    )}
-                    {meteo.windSurface < 8 && (
-                      <li style={styles.adviceItem}>ℹ️ Vento debole, possibili difficoltà di decollo</li>
-                    )}
-                    {meteo.cloudCover < 30 && meteo.thermalDelta > 10 && (
-                      <li style={styles.adviceItem}>🔥 Buona attività termica, ideale per cross country</li>
-                    )}
-                    {site.difficulty >= 4 && (
-                      <li style={styles.adviceItem}>⚠️ Sito difficile, richiesta esperienza avanzata</li>
-                    )}
-                    {windFavorable && meteo.windSurface >= 8 && meteo.windSurface <= 20 && (
-                      <li style={styles.adviceItem}>✅ Vento favorevole all'orientamento del sito</li>
-                    )}
-                    {!windFavorable && (
-                      <li style={styles.adviceItem}>⚠️ Vento non favorevole, potrebbe causare turbolenze</li>
-                    )}
-                  </ul>
+              {/* CONSIGLI */}
+              <div style={styles.adviceBox}>
+                <h3 style={styles.adviceTitle}>
+                  <WeatherIcon type="star" size={18} color="#ffd93d" /> Consigli per il volo
+                </h3>
+                {(() => {
+                  const advice = getFlightAdvice(
+                    { windSpeed: currentData.windSpeed, temperature: currentData.temperature, cloudCover: currentData.cloudCover, humidity: currentData.humidity, precipitation: currentData.precipitation, visibility: currentData.visibility, windDir: currentData.windDir },
+                    thermalDelta,
+                    site
+                  );
+                  const entries: { icon: WeatherIconProps["type"]; label: string; value: string; color: string }[] = [
+                    { icon: "wind", label: "Vento", value: advice.wind, color: "#81d4fa" },
+                    { icon: "flame", label: "Termiche", value: advice.thermal, color: "#ff6b6b" },
+                    { icon: "cloud", label: "Nuvole", value: advice.clouds, color: "#b0bec5" },
+                    { icon: "rain", label: "Pioggia", value: advice.precipitation, color: "#4da3ff" },
+                    { icon: "eye", label: "Visibilità", value: advice.visibility, color: "#aed581" },
+                    { icon: "wind", label: "Direzione vento", value: advice.windDir, color: "#4fc3f7" },
+                    { icon: "plane", label: "Cross Country", value: advice.crossCountry, color: "#81d4fa" },
+                    { icon: "mountain", label: "Sito", value: advice.siteDifficulty, color: "#ce93d8" },
+                  ];
+                  return (
+                    <div style={styles.adviceList}>
+                      {entries.map((e, i) => (
+                        <div key={i} style={styles.adviceItem}>
+                          <WeatherIcon type={e.icon} size={14} color={e.color} />
+                          <span style={styles.adviceLabel}>{e.label}:</span>
+                          <span style={styles.adviceValue}>{e.value}</span>
+                        </div>
+                      ))}
+                    </div>
+                  );
+                })()}
+              </div>
+
+              {/* PLAFOND */}
+              <div style={styles.plafondBox}>
+                <h3 style={styles.plafondTitle}>
+                  <WeatherIcon type="thermometer" size={18} color="#ffd93d" /> Plafond stimato
+                </h3>
+                <div style={styles.plafondContent}>
+                  <div style={styles.plafondValue}>
+                    {site.elevation ? `${Math.round(site.elevation + thermalDelta * 100)} m` : "—"}
+                  </div>
+                  <div style={styles.plafondLabel}>Quota massima raggiungibile</div>
+                  <div style={styles.plafondSub}>
+                    {site.elevation
+                      ? `Base decollo: ${site.elevation}m &bull; Delta: ${thermalDelta}&deg;C`
+                      : "Altitudine non disponibile"}
+                  </div>
+                  {site.elevation && (
+                    <div style={styles.plafondBar}>
+                      <div
+                        style={{
+                          ...styles.plafondFill,
+                          width: `${Math.min(100, ((site.elevation + thermalDelta * 100) / 4000) * 100)}%`,
+                        }}
+                      />
+                    </div>
+                  )}
                 </div>
               </div>
-            </div>
+            </>
           )}
         </div>
       </div>
+
+      <footer style={styles.footer}>
+        <p style={styles.footerText}>
+          Dati meteo forniti da Open-Meteo.com &bull; Previsioni per volo libero
+        </p>
+      </footer>
+
+      <style>{`
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: rgba(255,255,255,0.05); }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.25); }
+        input[type=range] { -webkit-appearance: none; appearance: none; height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; outline: none; }
+        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 18px; height: 18px; border-radius: 50%; background: #ff6b6b; cursor: pointer; border: 2px solid rgba(255,255,255,0.2); }
+        input[type=range]::-moz-range-thumb { width: 18px; height: 18px; border-radius: 50%; background: #ff6b6b; cursor: pointer; border: 2px solid rgba(255,255,255,0.2); }
+      `}</style>
     </div>
   );
 }
 
 /* ============================
-   STILI INLINE MIGLIORATI
+   STILI COMPLETI – Dark Premium
    ============================ */
 
-const styles = {
+const styles: Record<string, React.CSSProperties> = {
   app: {
     background: "linear-gradient(135deg, #0a0e27 0%, #1a1a2e 50%, #16213e 100%)",
     color: "#eee",
@@ -399,311 +392,294 @@ const styles = {
     padding: 20,
     fontFamily: "'Inter', 'Segoe UI', Arial, sans-serif",
   },
+  loadingFull: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
+    minHeight: "100vh",
+    background: "linear-gradient(135deg, #0a0e27 0%, #1a1a2e 50%, #16213e 100%)",
+    color: "#eee",
+  },
+  spinner: {
+    width: 50,
+    height: 50,
+    border: "4px solid rgba(255,255,255,0.1)",
+    borderTopColor: "#ff6b6b",
+    borderRadius: "50%",
+    animation: "spin 1s linear infinite",
+  },
+  loadingText: { marginTop: 20, fontSize: "1.2rem", color: "#fff" },
+  loadingSub: { marginTop: 10, fontSize: "0.9rem", color: "#888" },
+  errorFull: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
+    minHeight: "100vh",
+    background: "linear-gradient(135deg, #0a0e27 0%, #1a1a2e 50%, #16213e 100%)",
+    color: "#eee",
+  },
+  errorText: { color: "#ff6b6b", fontSize: "1.2rem", marginBottom: 20 },
+  retryButton: {
+    background: "#ff6b6b",
+    color: "#fff",
+    border: "none",
+    padding: "12px 30px",
+    borderRadius: 8,
+    cursor: "pointer",
+    fontWeight: 600,
+    fontSize: "1rem",
+  },
   header: {
     textAlign: "center",
     marginBottom: 30,
     padding: "20px 0",
-    borderBottom: "1px solid rgba(255,255,255,0.1)",
+    borderBottom: "1px solid rgba(255,255,255,0.08)",
   },
   title: {
-    fontSize: "2.5rem",
+    fontSize: "2.2rem",
     marginBottom: 5,
-    background: "linear-gradient(135deg, #4fc3f7, #00e676)",
+    background: "linear-gradient(135deg, #ff6b6b, #ffd93d)",
     WebkitBackgroundClip: "text",
     WebkitTextFillColor: "transparent",
     fontWeight: 800,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 12,
   },
-  subtitle: {
-    fontSize: "1rem",
-    color: "#888",
-    WebkitTextFillColor: "#888",
-  },
+  subtitle: { fontSize: "0.9rem", color: "#888", marginTop: 4 },
   grid: {
     display: "grid",
-    gridTemplateColumns: "350px 1fr",
+    gridTemplateColumns: "300px 1fr",
     gap: 20,
     maxWidth: "1400px",
     margin: "0 auto",
   },
   left: {
-    background: "rgba(255,255,255,0.05)",
+    background: "rgba(255,255,255,0.04)",
     padding: 15,
-    borderRadius: 15,
+    borderRadius: 16,
     backdropFilter: "blur(10px)",
-    border: "1px solid rgba(255,255,255,0.1)",
-    height: "calc(100vh - 200px)",
+    border: "1px solid rgba(255,255,255,0.08)",
+    height: "calc(100vh - 220px)",
     overflow: "hidden",
   },
   sectionTitle: {
-    fontSize: "1.2rem",
+    fontSize: "1rem",
     marginBottom: 15,
     color: "#4fc3f7",
     fontWeight: 600,
+    display: "flex",
+    alignItems: "center",
+    gap: 8,
   },
   cardList: {
     overflowY: "auto",
     height: "calc(100% - 50px)",
     paddingRight: 5,
   },
-  right: {
-    background: "rgba(255,255,255,0.05)",
-    padding: 20,
-    borderRadius: 15,
-    backdropFilter: "blur(10px)",
-    border: "1px solid rgba(255,255,255,0.1)",
-  },
   card: {
-    background: "#222",
-    border: "2px solid #333",
-    borderRadius: 10,
-    padding: 12,
-    marginBottom: 10,
+    display: "block",
+    width: "100%",
+    borderRadius: 12,
+    border: "1px solid #333",
+    padding: "10px 12px",
+    marginBottom: 8,
     cursor: "pointer",
     textAlign: "left",
-    width: "100%",
-    transition: "all 0.3s ease",
+    transition: "all 0.2s ease",
   },
-  cardTitle: {
-    fontSize: "1rem",
-    fontWeight: "bold",
-    color: "#fff",
+  cardHeader: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: 4,
+  },
+  cardTitle: { fontSize: "0.9rem", fontWeight: 600, color: "#fff" },
+  difficultyBadge: {
+    fontSize: "0.65rem",
+    fontWeight: 600,
+    padding: "1px 8px",
+    borderRadius: 10,
   },
   cardDetails: {
     display: "flex",
     justifyContent: "space-between",
-    marginBottom: 4,
-  },
-  cardSmall: {
-    fontSize: "0.8rem",
-    color: "#aaa",
-  },
-  cardBadges: {
-    display: "flex",
-    gap: 5,
-    marginTop: 4,
-  },
-  badge: {
     fontSize: "0.7rem",
-    padding: "2px 8px",
-    borderRadius: 12,
-    color: "#fff",
-    fontWeight: 600,
+    color: "#888",
+  },
+  right: {
+    background: "rgba(255,255,255,0.04)",
+    padding: 20,
+    borderRadius: 16,
+    backdropFilter: "blur(10px)",
+    border: "1px solid rgba(255,255,255,0.08)",
+    overflowY: "auto",
+    maxHeight: "calc(100vh - 220px)",
   },
   siteHeader: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
     marginBottom: 20,
     paddingBottom: 15,
-    borderBottom: "1px solid rgba(255,255,255,0.1)",
+    borderBottom: "1px solid rgba(255,255,255,0.08)",
   },
   siteName: {
-    fontSize: "1.8rem",
-    marginBottom: 5,
+    fontSize: "1.5rem",
+    fontWeight: 700,
     color: "#fff",
-  },
-  siteInfo: {
-    fontSize: "0.9rem",
-    color: "#aaa",
-  },
-  loadingContainer: {
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    justifyContent: "center",
-    height: 300,
-  },
-  spinner: {
-    width: 40,
-    height: 40,
-    border: "4px solid rgba(255,255,255,0.1)",
-    borderTopColor: "#4fc3f7",
-    borderRadius: "50%",
-    animation: "spin 1s linear infinite",
-  },
-  loadingText: {
-    marginTop: 15,
-    color: "#aaa",
-  },
-  errorContainer: {
-    textAlign: "center",
-    padding: 40,
-  },
-  errorText: {
-    color: "#ff1744",
-    marginBottom: 15,
-  },
-  retryButton: {
-    background: "#4fc3f7",
-    color: "#fff",
-    border: "none",
-    padding: "10px 20px",
-    borderRadius: 8,
-    cursor: "pointer",
-    fontWeight: 600,
-  },
-  meteoContainer: {
-    animation: "fadeIn 0.5s ease",
-  },
-  scoreBox: {
-    border: "3px solid",
-    padding: 15,
-    borderRadius: 12,
-    marginBottom: 20,
-    textAlign: "center",
-    background: "rgba(0,0,0,0.3)",
-  },
-  scoreMain: {
     display: "flex",
     alignItems: "center",
-    justifyContent: "center",
-    gap: 15,
-    marginBottom: 10,
-  },
-  scoreNumber: {
-    fontSize: "3rem",
-    fontWeight: "bold",
-    color: "#fff",
-  },
-  scoreLabel: {
-    fontSize: "1.2rem",
-    fontWeight: 600,
-    color: "#fff",
-  },
-  scoreDetails: {
-    display: "flex",
-    justifyContent: "center",
-    gap: 20,
-    flexWrap: "wrap",
-  },
-  scoreDetail: {
-    display: "flex",
     gap: 8,
-    fontSize: "0.9rem",
-    color: "#ccc",
   },
+  siteInfo: { fontSize: "0.8rem", color: "#888", marginTop: 4, display: "block" },
+  weatherNow: { display: "flex", alignItems: "center", gap: 10 },
+  tempNow: { fontSize: "2rem", fontWeight: 700, color: "#fff" },
+  daySelector: { display: "flex", gap: 8, marginBottom: 20 },
+  dayButton: {
+    flex: 1,
+    padding: "10px 6px",
+    borderRadius: 12,
+    border: "1px solid rgba(255,255,255,0.08)",
+    background: "rgba(255,255,255,0.04)",
+    cursor: "pointer",
+    textAlign: "center",
+    transition: "all 0.2s ease",
+  },
+  dayName: { fontSize: "0.75rem", fontWeight: 600, color: "#ccc", textTransform: "capitalize" },
+  dayTemp: { fontSize: "0.8rem", color: "#aaa", marginTop: 2 },
+  dayDelta: { fontSize: "0.7rem", color: "#ffd93d", fontWeight: 600 },
+  dayWeather: { fontSize: "0.65rem", color: "#888", marginTop: 2 },
+  hourSelector: {
+    display: "flex",
+    alignItems: "center",
+    gap: 12,
+    marginBottom: 20,
+    padding: "8px 14px",
+    borderRadius: 10,
+    background: "rgba(255,255,255,0.04)",
+    border: "1px solid rgba(255,255,255,0.08)",
+  },
+  hourLabel: { fontSize: "0.8rem", color: "#888", display: "flex", alignItems: "center", gap: 6, whiteSpace: "nowrap" },
+  hourSlider: { flex: 1, cursor: "pointer" },
+  hourValue: { fontSize: "0.9rem", fontWeight: 600, color: "#fff", minWidth: 40, textAlign: "right", fontFamily: "monospace" },
   meteoGrid: {
     display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
-    gap: 15,
+    gridTemplateColumns: "repeat(auto-fill, minmax(170px, 1fr))",
+    gap: 10,
     marginBottom: 20,
   },
   meteoCard: {
-    background: "rgba(0,0,0,0.3)",
-    padding: 15,
-    borderRadius: 10,
-    border: "1px solid rgba(255,255,255,0.1)",
+    background: "rgba(0,0,0,0.25)",
+    padding: "12px 14px",
+    borderRadius: 12,
+    border: "1px solid rgba(255,255,255,0.06)",
   },
   meteoLabel: {
-    fontSize: "0.9rem",
+    fontSize: "0.75rem",
     color: "#aaa",
-    marginBottom: 8,
+    marginBottom: 6,
+    display: "flex",
+    alignItems: "center",
+    gap: 6,
   },
-  meteoValue: {
-    fontSize: "1.5rem",
-    fontWeight: "bold",
-    color: "#fff",
-    marginBottom: 4,
-  },
-  meteoSub: {
-    fontSize: "0.8rem",
-    color: "#888",
-  },
-  advancedInfo: {
+  meteoValue: { fontSize: "1.3rem", fontWeight: 700, color: "#fff", marginBottom: 2 },
+  meteoSub: { fontSize: "0.7rem", color: "#888" },
+  thermalBox: {
     display: "grid",
     gridTemplateColumns: "1fr 1fr",
-    gap: 20,
-    marginTop: 20,
+    gap: 14,
+    marginBottom: 20,
   },
-  plafondBox: {
-    background: "rgba(0,0,0,0.3)",
-    padding: 15,
-    borderRadius: 10,
-    border: "1px solid rgba(255,255,255,0.1)",
+  thermalLeft: {
+    background: "rgba(255,107,107,0.06)",
+    padding: 16,
+    borderRadius: 12,
+    border: "1px solid rgba(255,107,107,0.15)",
   },
-  plafondVisual: {
+  thermalRight: {
+    background: "rgba(129,212,250,0.06)",
+    padding: 16,
+    borderRadius: 12,
+    border: "1px solid rgba(129,212,250,0.15)",
+  },
+  thermalTitle: {
+    fontSize: "0.85rem",
+    color: "#ccc",
+    marginBottom: 8,
     display: "flex",
-    gap: 20,
     alignItems: "center",
-    height: 150,
+    gap: 8,
   },
-  plafondBarContainer: {
-    width: 30,
-    height: "100%",
-    background: "rgba(255,255,255,0.1)",
-    borderRadius: 15,
-    position: "relative",
-    overflow: "hidden",
-  },
-  plafondBar: {
-    position: "absolute",
-    bottom: 0,
-    width: "100%",
-    borderRadius: 15,
-    transition: "height 1s ease",
-  },
-  plafondInfo: {
-    flex: 1,
-  },
-  plafondValue: {
-    fontSize: "1.5rem",
-    fontWeight: "bold",
-    color: "#fff",
-  },
-  plafondLabel: {
-    fontSize: "0.9rem",
-    color: "#aaa",
-    marginTop: 4,
-  },
-  plafondSub: {
-    fontSize: "0.8rem",
-    color: "#666",
-    marginTop: 2,
-  },
+  thermalValue: { fontSize: "0.95rem", fontWeight: 600, color: "#ff8a80" },
+  crossValue: { fontSize: "0.95rem", fontWeight: 600, color: "#81d4fa" },
+  thermalDetail: { fontSize: "0.7rem", color: "#888", marginTop: 4 },
   adviceBox: {
-    background: "rgba(0,0,0,0.3)",
-    padding: 15,
-    borderRadius: 10,
-    border: "1px solid rgba(255,255,255,0.1)",
+    background: "rgba(255,217,61,0.04)",
+    padding: 16,
+    borderRadius: 12,
+    border: "1px solid rgba(255,217,61,0.12)",
+    marginBottom: 20,
   },
   adviceTitle: {
-    fontSize: "1rem",
-    color: "#4fc3f7",
-    marginBottom: 10,
-  },
-  adviceList: {
-    listStyle: "none",
-    padding: 0,
-    margin: 0,
-  },
-  adviceItem: {
     fontSize: "0.9rem",
-    color: "#ddd",
-    padding: "4px 0",
-    borderBottom: "1px solid rgba(255,255,255,0.05)",
+    color: "#ffd93d",
+    marginBottom: 12,
+    display: "flex",
+    alignItems: "center",
+    gap: 8,
   },
+  adviceList: { display: "flex", flexDirection: "column", gap: 6 },
+  adviceItem: {
+    display: "flex",
+    alignItems: "center",
+    gap: 8,
+    fontSize: "0.8rem",
+    padding: "4px 0",
+    borderBottom: "1px solid rgba(255,255,255,0.04)",
+  },
+  adviceLabel: { fontWeight: 600, color: "#ccc", whiteSpace: "nowrap" },
+  adviceValue: { color: "#ddd", flex: 1 },
+  plafondBox: {
+    background: "rgba(255,255,255,0.03)",
+    padding: 16,
+    borderRadius: 12,
+    border: "1px solid rgba(255,255,255,0.08)",
+    marginBottom: 20,
+  },
+  plafondTitle: {
+    fontSize: "0.9rem",
+    color: "#ffd93d",
+    marginBottom: 10,
+    display: "flex",
+    alignItems: "center",
+    gap: 8,
+  },
+  plafondContent: { textAlign: "center" },
+  plafondValue: { fontSize: "1.8rem", fontWeight: 700, color: "#fff", marginBottom: 4 },
+  plafondLabel: { fontSize: "0.8rem", color: "#aaa", marginBottom: 4 },
+  plafondSub: { fontSize: "0.7rem", color: "#666", marginBottom: 12 },
+  plafondBar: {
+    width: "100%",
+    height: 6,
+    borderRadius: 3,
+    background: "rgba(255,255,255,0.08)",
+    overflow: "hidden",
+  },
+  plafondFill: {
+    height: "100%",
+    borderRadius: 3,
+    background: "linear-gradient(90deg, #ff6b6b, #ffd93d)",
+    transition: "width 1s ease",
+  },
+  footer: {
+    textAlign: "center",
+    padding: "20px 0",
+    marginTop: 30,
+    borderTop: "1px solid rgba(255,255,255,0.06)",
+  },
+  footerText: { fontSize: "0.75rem", color: "#555" },
 };
-
-/* Aggiungi CSS per animazioni */
-const styleSheet = document.createElement("style");
-styleSheet.textContent = `
-  @keyframes spin {
-    to { transform: rotate(360deg); }
-  }
-  @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-  ::-webkit-scrollbar {
-    width: 6px;
-  }
-  ::-webkit-scrollbar-track {
-    background: rgba(255,255,255,0.05);
-  }
-  ::-webkit-scrollbar-thumb {
-    background: rgba(255,255,255,0.2);
-    borderRadius: 3px;
-  }
-  ::-webkit-scrollbar-thumb:hover {
-    background: rgba(255,255,255,0.3);
-  }
-`;
-document.head.appendChild(styleSheet);
