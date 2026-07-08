@@ -1,7 +1,3 @@
-import type { Launch } from "../data/launches";
-
-/* ── Interfacce ── */
-
 export interface HourlyData {
   time: Date;
   temperature: number;
@@ -19,6 +15,7 @@ export interface HourlyData {
   windDir120m: number | null;
   uvIndex: number;
   isDay: number;
+  weatherCode: number;
 }
 
 export interface DailyData {
@@ -41,7 +38,7 @@ export interface MeteoResponse {
   daily: DailyData[];
 }
 
-/* ── Fetch ── */
+/* ── FETCH ── */
 
 export async function fetchMeteo(lat: number, lng: number): Promise<MeteoResponse> {
   const url =
@@ -56,6 +53,7 @@ export async function fetchMeteo(lat: number, lng: number): Promise<MeteoRespons
     `&timezone=auto&forecast_days=3`;
 
   const res = await fetch(url);
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
   const data = await res.json();
 
   const hourly: HourlyData[] = data.hourly.time.map((time: string, i: number) => ({
@@ -67,22 +65,22 @@ export async function fetchMeteo(lat: number, lng: number): Promise<MeteoRespons
     precipitation: data.hourly.precipitation[i] || 0,
     visibility: data.hourly.visibility ? data.hourly.visibility[i] / 1000 : 40,
     windSpeed: data.hourly.wind_speed_10m[i],
-    windGust: data.hourly.wind_gusts_10m ? data.hourly.wind_gusts_10m[i] : data.hourly.wind_speed_10m[i] + 8,
+    windGust: data.hourly.wind_gusts_10m?.[i] ?? data.hourly.wind_speed_10m[i] + 8,
     windDir: data.hourly.wind_direction_10m[i],
-    wind80m: data.hourly.wind_speed_80m ? data.hourly.wind_speed_80m[i] : null,
-    windDir80m: data.hourly.wind_direction_80m ? data.hourly.wind_direction_80m[i] : null,
-    wind120m: data.hourly.wind_speed_120m ? data.hourly.wind_speed_120m[i] : null,
-    windDir120m: data.hourly.wind_direction_120m ? data.hourly.wind_direction_120m[i] : null,
-    uvIndex: data.hourly.uv_index ? data.hourly.uv_index[i] : 0,
-    isDay: data.hourly.is_day ? data.hourly.is_day[i] : 1,
+    wind80m: data.hourly.wind_speed_80m?.[i] ?? null,
+    windDir80m: data.hourly.wind_direction_80m?.[i] ?? null,
+    wind120m: data.hourly.wind_speed_120m?.[i] ?? null,
+    windDir120m: data.hourly.wind_direction_120m?.[i] ?? null,
+    uvIndex: data.hourly.uv_index?.[i] ?? 0,
+    isDay: data.hourly.is_day?.[i] ?? 1,
+    weatherCode: data.hourly.weathercode?.[i] ?? 0,
   }));
 
   const daily: DailyData[] = data.daily.time.map((date: string, i: number) => {
-    const dayHours = hourly.filter(h =>
-      h.time.getDate() === new Date(date).getDate() &&
-      h.time.getMonth() === new Date(date).getMonth()
+    const dayHours = hourly.filter(
+      (h) => h.time.getDate() === new Date(date).getDate() && h.time.getMonth() === new Date(date).getMonth()
     );
-    const temps = dayHours.map(h => h.temperature).filter((t): t is number => t != null);
+    const temps = dayHours.map((h) => h.temperature).filter((t): t is number => t != null);
     const delta = temps.length > 0 ? Math.round(Math.max(...temps) - Math.min(...temps)) : 0;
 
     return {
@@ -104,7 +102,7 @@ export async function fetchMeteo(lat: number, lng: number): Promise<MeteoRespons
   return { hourly, daily };
 }
 
-/* ── Utility meteo ── */
+/* ── UTILITY ── */
 
 export function getWeatherIcon(code: number, isDay: number): string {
   const icons: Record<number, string> = {
@@ -119,8 +117,7 @@ export function getWeatherIcon(code: number, isDay: number): string {
 export function getWeatherDescription(code: number): string {
   const map: Record<number, string> = {
     0: 'Sereno', 1: 'Poco nuvoloso', 2: 'Parzialmente nuvoloso', 3: 'Nuvoloso',
-    45: 'Nebbia', 48: 'Nebbia ghiacciata',
-    51: 'Pioviggine leggera', 53: 'Pioviggine moderata', 55: 'Pioviggine densa',
+    45: 'Nebbia', 48: 'Nebbia ghiacciata', 51: 'Pioviggine leggera', 53: 'Pioviggine moderata', 55: 'Pioviggine densa',
     61: 'Pioggia leggera', 63: 'Pioggia moderata', 65: 'Pioggia forte',
     71: 'Neve leggera', 73: 'Neve moderata', 75: 'Neve forte',
     80: 'Rovescio di pioggia', 81: 'Rovescio moderato', 82: 'Rovescio forte',
@@ -135,100 +132,75 @@ export function getWindDirection(degrees: number): string {
 }
 
 export function getWindArrow(degrees: number): string {
-  if (degrees == null) return '➡️';
-  return ['⬆️', '↗️', '➡️', '↘️', '⬇️', '↙️', '⬅️', '↖️'][Math.round(degrees / 45) % 8];
+  if (degrees == null) return '→';
+  return ['↑', '↗', '→', '↘', '↓', '↙', '←', '↖'][Math.round(degrees / 45) % 8];
 }
 
-export function isWindFavorable(windDir: number, exposure: string): boolean {
-  if (windDir == null) return false;
-  const windStr = getWindDirection(windDir);
-  return exposure.split('/').map(d => d.trim()).some(exp => windStr === exp);
+export function getCloudCondition(cloudCover: number): { text: string; icon: string; color: string } {
+  if (cloudCover < 20) return { text: 'Sereno', icon: '☀️', color: '#ffd93d' };
+  if (cloudCover < 40) return { text: 'Poco nuvoloso', icon: '🌤️', color: '#f9a825' };
+  if (cloudCover < 60) return { text: 'Nuvoloso', icon: '⛅', color: '#90a4ae' };
+  if (cloudCover < 80) return { text: 'Molto nuvoloso', icon: '☁️', color: '#78909c' };
+  return { text: 'Coperto', icon: '☁️', color: '#546e7a' };
 }
 
-/* ── Analisi termiche ── */
+export function getWindCondition(speed: number): { text: string; color: string; icon: string } {
+  if (speed < 5) return { text: 'Debole', color: '#4caf50', icon: '🌱' };
+  if (speed < 12) return { text: 'Leggero', color: '#8bc34a', icon: '🍃' };
+  if (speed < 20) return { text: 'Moderato', color: '#ff9800', icon: '💨' };
+  if (speed < 30) return { text: 'Forte', color: '#ff5722', icon: '🌪️' };
+  return { text: 'Molto forte', color: '#f44336', icon: '⚠️' };
+}
 
-export function getThermalStrength(temp: number, cloud: number, humidity: number, deltaT: number) {
+export function getThermalIndex(temp: number, cloud: number, humidity: number, delta: number) {
   let score = 0;
-  if (temp > 25) score += 3;
-  else if (temp > 20) score += 2;
-  else if (temp > 15) score += 1;
-  if (cloud < 20) score += 3;
-  else if (cloud < 40) score += 2;
-  else if (cloud < 60) score += 1;
-  if (humidity < 40) score += 2;
-  else if (humidity < 60) score += 1;
-  if (deltaT > 12) score += 2;
-  else if (deltaT > 8) score += 1;
-
-  if (score >= 7) return { level: "Forti 💪", desc: "ottime per cross country" };
-  if (score >= 5) return { level: "Medie 👍", desc: "buona attività termica" };
-  if (score >= 3) return { level: "Deboli 🫤", desc: "poca attività termica" };
-  return { level: "Assenti ❌", desc: "nessuna termica" };
-}
-
-export function getTurbulenceRisk(wind: number, gust: number, thermalLevel: string) {
-  let risk = 0;
-  if (gust > 30) risk += 2;
-  else if (gust > 20) risk += 1;
-  if (wind > 25) risk += 2;
-  else if (wind > 18) risk += 1;
-  if (thermalLevel.includes("Forti")) risk += 1;
-
-  if (risk >= 4) return { level: "ALTO ⚠️", color: "#ff1744", desc: "Turbolenze significative, volo sconsigliato" };
-  if (risk >= 2) return { level: "MEDIO ⚡", color: "#ff9800", desc: "Possibili turbolenze, attenzione" };
-  return { level: "BASSO ✅", color: "#4caf50", desc: "Condizioni stabili, volo sicuro" };
-}
-
-export function getCrossCountryRating(thermalLevel: string, wind: number, cloud: number, vis: number) {
-  let score = 0;
-  if (thermalLevel.includes("Forti")) score += 3;
-  else if (thermalLevel.includes("Medie")) score += 2;
-  else if (thermalLevel.includes("Deboli")) score += 1;
-  if (wind >= 10 && wind <= 25) score += 2;
-  else if (wind < 10) score += 1;
+  if (temp > 22) score += 2;
+  else if (temp > 18) score += 1;
   if (cloud < 30) score += 2;
-  else if (cloud < 60) score += 1;
-  if (vis > 20) score += 2;
-  else if (vis > 10) score += 1;
+  else if (cloud < 50) score += 1;
+  if (humidity < 50) score += 1;
+  if (delta > 10) score += 2;
+  else if (delta > 6) score += 1;
 
-  if (score >= 7) return { rating: "Eccellente ⭐", color: "#00c853", desc: "Condizioni ideali per voli lunghi" };
-  if (score >= 5) return { rating: "Buono 👍", color: "#4caf50", desc: "Buone condizioni per cross" };
-  if (score >= 3) return { rating: "Discreto 🫤", color: "#ff9800", desc: "Cross possibile ma difficile" };
-  return { rating: "Sconsigliato ❌", color: "#ff1744", desc: "Non adatto per cross country" };
+  if (score >= 6) return { level: 'Forte', icon: '🔥', color: '#ff1744' };
+  if (score >= 4) return { level: 'Media', icon: '💪', color: '#ff6d00' };
+  if (score >= 2) return { level: 'Debole', icon: '🫤', color: '#ffd600' };
+  return { level: 'Assente', icon: '❄️', color: '#4fc3f7' };
 }
 
-export function getBaseReachable(temp: number, deltaT: number): string {
-  return `${Math.round(deltaT * 80 + 1500)}m`;
-}
+export function getFlightRating(meteo: {
+  windSpeed: number;
+  cloudCover: number;
+  precipitation: number;
+  visibility: number;
+  temperature: number;
+  humidity: number;
+  thermalDelta: number;
+}) {
+  let score = 0;
+  const issues: string[] = [];
 
-export function getDaySummary(dayHours: HourlyData[], site: Launch): string[] {
-  const summaries: string[] = [];
-  const avgTemp = dayHours.reduce((s, h) => s + h.temperature, 0) / dayHours.length;
-  const avgCloud = dayHours.reduce((s, h) => s + h.cloudCover, 0) / dayHours.length;
-  const maxWind = Math.max(...dayHours.map(h => h.windSpeed));
-  const hasRain = dayHours.some(h => h.precipitation > 0);
+  if (meteo.windSpeed > 25) { score -= 2; issues.push('Vento forte'); }
+  else if (meteo.windSpeed > 18) { score -= 1; issues.push('Vento sostenuto'); }
+  else if (meteo.windSpeed < 5) { score -= 1; issues.push('Vento debole'); }
+  else score += 1;
 
-  if (avgCloud < 30) summaries.push("☀️ Giornata prevalentemente soleggiata");
-  else if (avgCloud < 60) summaries.push("⛅ Giornata con nuvole moderate");
-  else summaries.push("☁️ Giornata nuvolosa");
+  if (meteo.cloudCover > 80) { score -= 2; issues.push('Cielo coperto'); }
+  else if (meteo.cloudCover > 60) { score -= 1; issues.push('Nuvoloso'); }
+  else if (meteo.cloudCover < 30) score += 1;
 
-  if (avgTemp > 25) summaries.push(`🌡️ Caldo (${Math.round(avgTemp)}°C) – buona attività termica`);
-  else if (avgTemp > 18) summaries.push(`🌡️ Temperatura mite (${Math.round(avgTemp)}°C)`);
-  else summaries.push(`🌡️ Fresco (${Math.round(avgTemp)}°C)`);
+  if (meteo.precipitation > 0.5) { score -= 3; issues.push('Pioggia'); }
 
-  if (maxWind > 30) summaries.push(`💨 VENTO FORTE (${Math.round(maxWind)} km/h) – attenzione!`);
-  else if (maxWind > 20) summaries.push(`💨 Vento sostenuto (${Math.round(maxWind)} km/h)`);
-  else if (maxWind < 8) summaries.push(`💨 Vento debole (${Math.round(maxWind)} km/h)`);
-  else summaries.push(`💨 Vento moderato (${Math.round(maxWind)} km/h)`);
+  if (meteo.visibility < 10) { score -= 1; issues.push('Visibilità ridotta'); }
+  else if (meteo.visibility > 20) score += 1;
 
-  if (hasRain) summaries.push("🌧️ Possibili precipitazioni – VOLO SCONSIGLIATO");
+  const thermal = getThermalIndex(meteo.temperature, meteo.cloudCover, meteo.humidity, meteo.thermalDelta);
+  if (thermal.level === 'Forte') score += 2;
+  else if (thermal.level === 'Media') score += 1;
 
-  if (site.difficulty >= 4) summaries.push("🏔️ Sito DIFFICILE – esperienza avanzata richiesta");
-  else if (site.difficulty >= 3) summaries.push("🏔️ Sito moderatamente difficile");
-  else summaries.push("🏔️ Sito adatto a tutti i livelli");
-
-  const good = avgCloud < 60 && maxWind < 25 && !hasRain;
-  summaries.push(good ? "✅ Condizioni favorevoli per il volo" : "⚠️ Verificare attentamente le condizioni prima di volare");
-
-  return summaries;
+  if (score >= 4) return { rating: 'Eccellente ⭐', color: '#00c853', desc: 'Condizioni perfette per volare!' };
+  if (score >= 2) return { rating: 'Buono 👍', color: '#4caf50', desc: 'Buone condizioni, vola!' };
+  if (score >= 0) return { rating: 'Discreto 🫤', color: '#ff9800', desc: 'Valuta attentamente' };
+  if (score >= -2) return { rating: 'Difficile ⚠️', color: '#ff5722', desc: 'Condizioni difficili' };
+  return { rating: 'Sconsigliato ❌', color: '#f44336', desc: 'Non volare, condizioni pericolose' };
 }
