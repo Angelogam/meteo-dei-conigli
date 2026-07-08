@@ -32,10 +32,11 @@ export default function App() {
 
   function scoreFor(lat: number, lon: number): number {
     const me = siteData.get(launches.find(l2 => l2.lat === lat && l2.lon === lon)?.id || "");
-    if (!me || !me.hourly || !me.daily) return 0;
+    if (!me || !me.hourly || !me.daily || me.daily.length === 0) return 0;
     const h = me.hourly.filter(x => {
-      const hr = parseInt(x.time.slice(11, 13));
-      return hr >= 10 && hr <= 16 && x.time.startsWith(me.daily[0]?.date || "");
+      const hr = parseInt(x.time.slice(11, 13), 10);
+      const day = x.time.slice(0, 10);
+      return hr >= 10 && hr <= 16 && day === me.daily[0].date;
     });
     if (h.length === 0) return 0;
     const wind = h.reduce((s, x) => s + x.windSpeed10m, 0) / h.length;
@@ -59,10 +60,10 @@ export default function App() {
   const siteRating = siteScore >= 80 ? 'Eccellente' : siteScore >= 60 ? 'Buono' : siteScore >= 40 ? 'Discreto' : siteScore >= 20 ? 'Difficile' : 'Sconsigliato';
 
   const currentDaily = raw?.daily && raw.daily.length > 0 ? raw.daily[Math.min(dayIdx, raw.daily.length - 1)] : null;
+  const currentDate = currentDaily ? currentDaily.date : "";
   const currentHours = (raw?.hourly || []).filter(x => {
-    if (!currentDaily) return false;
-    const hr = parseInt(x.time.slice(11, 13));
-    return x.time.startsWith(currentDaily.date) && hr >= 7 && hr <= 20;
+    const hr = parseInt(x.time.slice(11, 13), 10);
+    return x.time.slice(0, 10) === currentDate && hr >= 7 && hr <= 20;
   });
 
   return (
@@ -156,7 +157,7 @@ export default function App() {
               {currentHours.length > 0 && (
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: 8 }}>
                   {currentHours.map((h, i) => {
-                    const hr = parseInt(h.time.slice(11, 13));
+                    const hr = parseInt(h.time.slice(11, 13), 10);
                     const good = h.windSpeed10m >= 8 && h.windSpeed10m <= 20 && h.cloudCover < 40;
                     const bad = h.windSpeed10m > 25 || h.cloudCover > 80;
                     const border = good ? '#00FF8C' : bad ? '#FF4E4E' : '#FFC857';
