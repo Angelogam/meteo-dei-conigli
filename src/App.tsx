@@ -11,6 +11,8 @@ import {
   getFlightRating,
   type MeteoResponse,
 } from "./utils/meteo";
+import WindProfileVectors from "./components/WindProfileVectors";
+import { computeWindProfile } from "./utils/windProfile";
 
 export default function App() {
   const [selected, setSelected] = useState(launches[0].id);
@@ -73,6 +75,17 @@ export default function App() {
   const thermalIndex = currentData
     ? getThermalIndex(currentData.temperature, currentData.cloudCover, currentData.humidity, thermalDelta)
     : null;
+
+  // Profilo vento
+  const windProfile = useMemo(() => {
+    if (!currentData) return [];
+    return computeWindProfile(currentData, 1500);
+  }, [currentData]);
+
+  const maxWindSpeed = useMemo(() => {
+    if (windProfile.length === 0) return 80;
+    return Math.max(...windProfile.map((w) => w.speed), 30);
+  }, [windProfile]);
 
   const hoursRange = Array.from({ length: 11 }, (_, i) => i + 9);
 
@@ -248,25 +261,8 @@ export default function App() {
                 </div>
               </div>
 
-              <div style={styles.section}>
-                <h3 style={{ color: "#4fc3f7", marginBottom: 10, fontSize: "0.95rem" }}>📊 Vento orario (9:00 - 19:00)</h3>
-                <div style={styles.hourlyWindGrid}>
-                  {hoursRange.map((h) => {
-                    const hd = dayData?.find((d) => d.time.getHours() === h);
-                    if (!hd) return null;
-                    return (
-                      <div key={h} style={styles.hwCard}>
-                        <div style={{ fontSize: "0.6rem", color: "#888" }}>{String(h).padStart(2, "0")}:00</div>
-                        <div style={{ fontSize: "0.8rem", fontWeight: "bold", color: "#fff" }}>
-                          {getWindArrow(hd.windDir)} {Math.round(hd.windSpeed)}
-                        </div>
-                        <div style={{ fontSize: "0.55rem", color: "#666" }}>{getWindDirection(hd.windDir)}</div>
-                        <div style={{ fontSize: "0.6rem", color: "#ff6b6b" }}>⚡{Math.round(hd.windGust)}</div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
+              {/* SOSTITUITO: profilo vento vettoriale in quota */}
+              <WindProfileVectors data={windProfile} maxSpeed={maxWindSpeed} />
 
               <div style={styles.analysisGrid}>
                 <div style={styles.analysisBox}>
@@ -341,8 +337,6 @@ const styles: Record<string, React.CSSProperties> = {
   section: { marginBottom: 15, padding: 15, background: "rgba(0,0,0,0.3)", borderRadius: 10, border: "1px solid rgba(255,255,255,0.05)" },
   windGrid: { display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10 },
   wCard: { textAlign: "center", padding: 10, background: "rgba(255,255,255,0.05)", borderRadius: 8 },
-  hourlyWindGrid: { display: "grid", gridTemplateColumns: "repeat(11, 1fr)", gap: 4, overflowX: "auto" },
-  hwCard: { textAlign: "center", padding: 6, background: "rgba(255,255,255,0.03)", borderRadius: 6, minWidth: 50 },
   analysisGrid: { display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10, marginTop: 15 },
   analysisBox: { background: "rgba(0,0,0,0.3)", padding: 12, borderRadius: 10, border: "1px solid rgba(255,255,255,0.05)", textAlign: "center" },
   footer: { textAlign: "center", marginTop: 30, padding: "20px 0", borderTop: "1px solid rgba(255,255,255,0.1)" },
