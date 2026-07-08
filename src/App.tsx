@@ -114,7 +114,7 @@ export default function App() {
   const sortedSites = useMemo(() => {
     return launches.map(l => {
       const d = rawData.get(l.id);
-      if (!d) return { launch: l, score: 0, thermals: 0, rating: "N/D" };
+      if (!d) return { launch: l, score: 0, rating: "N/D" };
       const todayHours = d.hourly.filter(h => h.time.startsWith(d.daily[0]?.date || ''));
       const central = todayHours.filter(h => {
         const hour = parseInt(h.time.slice(11, 13));
@@ -195,7 +195,9 @@ export default function App() {
               {sortedSites.map(({ launch: l, score, rating }) => {
                 const color = score >= 80 ? '#00FF8C' : score >= 60 ? '#4DA3FF' : score >= 40 ? '#FFC857' : score >= 20 ? '#FF9F1C' : '#FF4E4E';
                 return (
-                  <button key={l.id} onClick={() => { setSelectedId(l.id); setSelectedDay(0); setSelectedHour(13); }} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 12, border: `1px solid ${l.id === selectedId ? 'rgba(0,255,140,0.25)' : 'rgba(255,255,255,0.04)'}`, background: l.id === selectedId ? 'rgba(0,255,140,<dyad-write path="src/App.tsx">
+                  <button key={l.id} onClick={() => { setSelectedId(l.id); setSelectedDay(0); setSelectedHour(13); }} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 12, border: `1pxOttimo. L'app è stata completamente riscritta da zero. Ora dovresti vedere il caricamento dei dati meteo e l'interfaccia con la lista dei decolli a sinistra e i dettagli a destra.
+
+<dyad-command type="rebuild"></dyad-command><dyad-write path="src/App.tsx">
 import { useState, useEffect, useMemo } from "react";
 import { launches } from "./data/launches";
 import { fetchForecast, HourlyData, DailyData } from "./utils/api";
@@ -393,13 +395,37 @@ export default function App() {
               {sortedSites.map(({ launch: l, score, rating }) => {
                 const color = score >= 80 ? '#00FF8C' : score >= 60 ? '#4DA3FF' : score >= 40 ? '#FFC857' : score >= 20 ? '#FF9F1C' : '#FF4E4E';
                 return (
-                  <button key={l.id} onClick={() => { setSelectedId(l.id); setSelectedDay(0); setSelectedHour(13); }} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 12, border: `1px solid ${l.id === selectedId ? 'rgba(0,255,140,0.25)' : 'rgba(255,255,255,0.04)'}`, background: l.id === selectedId ? 'rgba(0,255,140,0.06)' : 'transparent', cursor: 'pointer', textAlign: 'left', width: '100%' }}>
-                    <div style={{ width: 36, height: 36, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.9rem', fontWeight: 700, fontFamily: 'monospace', background: `${color}15`, color, border: `1px solid ${color}25`, flexShrink: 0 }}>{score}</div>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: '0.8rem', fontWeight: 600, color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{l.name}</div>
-                      <div style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.35)' }}>{l.valley} · {l.elevation}m</div>
+                  <button
+                    key={l.id}
+                    onClick={() => { setSelectedId(l.id); setSelectedDay(0); setSelectedHour(13); }}
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: 10,
+                      padding: '10px 12px', borderRadius: 12,
+                      border: `1px solid ${l.id === selectedId ? 'rgba(0,255,140,0.25)' : 'rgba(255,255,255,0.04)'}`,
+                      background: l.id === selectedId ? 'rgba(0,255,140,0.06)' : 'transparent',
+                      cursor: 'pointer', textAlign: 'left', width: '100%',
+                    }}
+                  >
+                    <div style={{
+                      width: 36, height: 36, borderRadius: 10,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      fontSize: '0.9rem', fontWeight: 700, fontFamily: 'monospace',
+                      background: `${color}15`, color, border: `1px solid ${color}25`,
+                      flexShrink: 0,
+                    }}>
+                      {score}
                     </div>
-                    <div style={{ fontSize: '0.65rem', fontWeight: 600, color, whiteSpace: 'nowrap' }}>{rating}</div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: '0.8rem', fontWeight: 600, color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        {l.name}
+                      </div>
+                      <div style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.35)' }}>
+                        {l.valley} · {l.elevation}m
+                      </div>
+                    </div>
+                    <div style={{ fontSize: '0.65rem', fontWeight: 600, color, whiteSpace: 'nowrap' }}>
+                      {rating}
+                    </div>
                   </button>
                 );
               })}
@@ -409,27 +435,57 @@ export default function App() {
           <div style={{ maxHeight: 'calc(100vh - 140px)', overflowY: 'auto', paddingRight: 4 }}>
             {currentDay && currentHourData && (
               <>
-                <div style={{ background: `linear-gradient(135deg, ${currentDay.flightScore.color}08, transparent 60%)`, borderRadius: 16, border: '1px solid rgba(255,255,255,0.06)', padding: '16px 20px', marginBottom: 14 }}>
+                <div style={{
+                  background: `linear-gradient(135deg, ${currentDay.flightScore.color}08, transparent 60%)`,
+                  borderRadius: 16, border: '1px solid rgba(255,255,255,0.06)',
+                  padding: '16px 20px', marginBottom: 14,
+                }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16 }}>
                     <div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
                         <h2 style={{ fontSize: '1.3rem', fontWeight: 700, color: '#fff', margin: 0 }}>{site.name}</h2>
-                        <span style={{ fontSize: '0.6rem', fontWeight: 600, padding: '2px 8px', borderRadius: 20, background: `${currentDay.flightScore.color}20`, color: currentDay.flightScore.color }}>{currentDay.flightScore.rating}</span>
+                        <span style={{
+                          fontSize: '0.6rem', fontWeight: 600, padding: '2px 8px', borderRadius: 20,
+                          background: `${currentDay.flightScore.color}20`, color: currentDay.flightScore.color,
+                        }}>
+                          {currentDay.flightScore.rating}
+                        </span>
                       </div>
-                      <p style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.45)', margin: 0 }}><MapPin size={10} style={{ display: 'inline', marginRight: 4 }} />{site.valley} · {site.elevation}m · {site.exposure}</p>
+                      <p style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.45)', margin: 0 }}>
+                        <MapPin size={10} style={{ display: 'inline', marginRight: 4 }} />
+                        {site.valley} · {site.elevation}m · {site.exposure}
+                      </p>
                     </div>
                     <div style={{ textAlign: 'center' }}>
-                      <div style={{ width: 56, height: 56, borderRadius: 14, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: `${currentDay.flightScore.color}15`, border: `2px solid ${currentDay.flightScore.color}30` }}>
-                        <span style={{ fontSize: '1.4rem', fontWeight: 700, fontFamily: 'monospace', color: currentDay.flightScore.color }}>{currentDay.flightScore.score}</span>
+                      <div style={{
+                        width: 56, height: 56, borderRadius: 14,
+                        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                        background: `${currentDay.flightScore.color}15`,
+                        border: `2px solid ${currentDay.flightScore.color}30`,
+                      }}>
+                        <span style={{ fontSize: '1.4rem', fontWeight: 700, fontFamily: 'monospace', color: currentDay.flightScore.color }}>
+                          {currentDay.flightScore.score}
+                        </span>
                       </div>
-                      <span style={{ fontSize: '0.6rem', color: currentDay.flightScore.color, fontWeight: 600, display: 'block', marginTop: 4 }}>{currentDay.flightScore.rating.toUpperCase()}</span>
+                      <span style={{ fontSize: '0.6rem', color: currentDay.flightScore.color, fontWeight: 600, display: 'block', marginTop: 4 }}>
+                        {currentDay.flightScore.rating.toUpperCase()}
+                      </span>
                     </div>
                   </div>
                 </div>
 
                 <div style={{ display: 'flex', gap: 8, marginBottom: 14 }}>
                   {processedDays.map((day, i) => (
-                    <button key={day.date} onClick={() => { setSelectedDay(i); setSelectedHour(13); }} style={{ flex: 1, padding: '10px 8px', borderRadius: 12, border: `1px solid ${i === selectedDay ? `${day.flightScore.color}50` : 'rgba(255,255,255,0.06)'}`, background: i === selectedDay ? `${day.flightScore.color}10` : 'rgba(255,255,255,0.03)', cursor: 'pointer', textAlign: 'center' }}>
+                    <button
+                      key={day.date}
+                      onClick={() => { setSelectedDay(i); setSelectedHour(13); }}
+                      style={{
+                        flex: 1, padding: '10px 8px', borderRadius: 12,
+                        border: `1px solid ${i === selectedDay ? `${day.flightScore.color}50` : 'rgba(255,255,255,0.06)'}`,
+                        background: i === selectedDay ? `${day.flightScore.color}10` : 'rgba(255,255,255,0.03)',
+                        cursor: 'pointer', textAlign: 'center',
+                      }}
+                    >
                       <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#fff' }}>{getDayLabel(day.date)}</div>
                       <div style={{ fontSize: '1.2rem', margin: '2px 0' }}>{getWeatherIcon(day.daily.weatherCode, true)}</div>
                       <div style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.6)' }}>{Math.round(day.daily.tempMax)}°/{Math.round(day.daily.tempMin)}°</div>
@@ -439,31 +495,69 @@ export default function App() {
                 </div>
 
                 {currentDay.flightScore.issues.length > 0 && (
-                  <div style={{ padding: '10px 14px', borderRadius: 12, marginBottom: 14, background: 'rgba(255,200,87,0.06)', border: '1px solid rgba(255,200,87,0.2)', fontSize: '0.75rem', color: 'rgba(255,255,255,0.6)', display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                  <div style={{
+                    padding: '10px 14px', borderRadius: 12, marginBottom: 14,
+                    background: 'rgba(255,200,87,0.06)', border: '1px solid rgba(255,200,87,0.2)',
+                    fontSize: '0.75rem', color: 'rgba(255,255,255,0.6)',
+                    display: 'flex', flexWrap: 'wrap', gap: 6,
+                  }}>
                     <AlertTriangle size={12} color="#FFC857" style={{ flexShrink: 0, marginTop: 2 }} />
                     {currentDay.flightScore.issues.map((issue, i) => (
-                      <span key={i} style={{ padding: '2px 8px', borderRadius: 6, background: 'rgba(255,200,87,0.1)', color: '#FFC857', fontSize: '0.65rem', fontWeight: 500 }}>{issue}</span>
+                      <span key={i} style={{
+                        padding: '2px 8px', borderRadius: 6,
+                        background: 'rgba(255,200,87,0.1)', color: '#FFC857',
+                        fontSize: '0.65rem', fontWeight: 500,
+                      }}>
+                        {issue}
+                      </span>
                     ))}
                   </div>
                 )}
 
-                <div style={{ padding: '12px 16px', borderRadius: 12, marginBottom: 14, background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)' }}>
+                <div style={{
+                  padding: '12px 16px', borderRadius: 12, marginBottom: 14,
+                  background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)',
+                }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                     <Clock size={14} color="rgba(255,255,255,0.3)" />
-                    <input type="range" min={7} max={20} value={selectedHour} onChange={e => setSelectedHour(parseInt(e.target.value))} style={{ flex: 1 }} />
-                    <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#fff', fontFamily: 'monospace', minWidth: 45 }}>{formatHour(selectedHour)}</span>
+                    <input
+                      type="range"
+                      min={7}
+                      max={20}
+                      value={selectedHour}
+                      onChange={e => setSelectedHour(parseInt(e.target.value))}
+                      style={{ flex: 1 }}
+                    />
+                    <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#fff', fontFamily: 'monospace', minWidth: 45 }}>
+                      {formatHour(selectedHour)}
+                    </span>
                   </div>
                   <div style={{ display: 'flex', gap: 2, marginTop: 8 }}>
                     {Array.from({ length: 14 }, (_, i) => i + 7).map(h => {
                       const hData = currentDay.hours.find(hh => parseInt(hh.time.slice(11, 13)) === h);
                       if (!hData) return null;
                       const isActive = h === selectedHour;
-                      const thermal = estimateThermals(hData.temperature2m, hData.temperature850hPa, hData.relativeHumidity2m, hData.cloudCover, hData.windSpeed850hPa, hData.cape, hData.liftedIndex);
+                      const thermal = estimateThermals(
+                        hData.temperature2m, hData.temperature850hPa,
+                        hData.relativeHumidity2m, hData.cloudCover,
+                        hData.windSpeed850hPa, hData.cape, hData.liftedIndex,
+                      );
                       const c = thermal.quality >= 4 ? '#00FF8C' : thermal.quality >= 3 ? '#FFC857' : '#FF4E4E';
                       return (
-                        <button key={h} onClick={() => setSelectedHour(h)} style={{ flex: 1, padding: '4px 0', borderRadius: 6, textAlign: 'center', border: `1px solid ${isActive ? `${c}50` : 'transparent'}`, background: isActive ? `${c}15` : 'rgba(255,255,255,0.03)', cursor: 'pointer' }}>
+                        <button
+                          key={h}
+                          onClick={() => setSelectedHour(h)}
+                          style={{
+                            flex: 1, padding: '4px 0', borderRadius: 6, textAlign: 'center',
+                            border: `1px solid ${isActive ? `${c}50` : 'transparent'}`,
+                            background: isActive ? `${c}15` : 'rgba(255,255,255,0.03)',
+                            cursor: 'pointer',
+                          }}
+                        >
                           <div style={{ fontSize: '0.55rem', color: 'rgba(255,255,255,0.4)' }}>{h}:00</div>
-                          <div style={{ fontSize: '0.6rem', fontWeight: 700, fontFamily: 'monospace', color: isActive ? '#fff' : 'rgba(255,255,255,0.5)' }}>{thermal.quality}</div>
+                          <div style={{ fontSize: '0.6rem', fontWeight: 700, fontFamily: 'monospace', color: isActive ? '#fff' : 'rgba(255,255,255,0.5)' }}>
+                            {thermal.quality}
+                          </div>
                           <div style={{ width: 4, height: 4, borderRadius: '50%', margin: '2px auto 0', background: c }} />
                         </button>
                       );
@@ -502,8 +596,15 @@ export default function App() {
                         <div style={{ width: 60, fontSize: '0.65rem', color: 'rgba(255,255,255,0.4)', textAlign: 'right', flexShrink: 0 }}>{level.alt >= 1000 ? `${(level.alt / 1000).toFixed(1)} km` : `${level.alt} m`}</div>
                         <div style={{ fontSize: '1rem', width: 20, textAlign: 'center', flexShrink: 0 }}>{windDegToArrow(level.dir)}</div>
                         <div style={{ flex: 1, height: 22, borderRadius: 11, background: 'rgba(255,255,255,0.04)', overflow: 'hidden', position: 'relative' }}>
-                          <div style={{ height: '100%', borderRadius: 11, width: `${pct}%`, background: `linear-gradient(90deg, ${color}CC, ${color}88)`, display: 'flex', alignItems: 'center', paddingLeft: 8 }}>
-                            <span style={{ fontSize: '0.65rem', fontWeight: 600, color: '#fff', whiteSpace: 'nowrap', opacity: pct > 25 ? 1 : 0 }}>{windDegToCardinal(level.dir)}</span>
+                          <div style={{
+                            height: '100%', borderRadius: 11,
+                            width: `${pct}%`,
+                            background: `linear-gradient(90deg, ${color}CC, ${color}88)`,
+                            display: 'flex', alignItems: 'center', paddingLeft: 8,
+                          }}>
+                            <span style={{ fontSize: '0.65rem', fontWeight: 600, color: '#fff', whiteSpace: 'nowrap', opacity: pct > 25 ? 1 : 0 }}>
+                              {windDegToCardinal(level.dir)}
+                            </span>
                           </div>
                         </div>
                         <div style={{ width: 50, textAlign: 'right', fontSize: '0.75rem', fontWeight: 600, fontFamily: 'monospace', color, flexShrink: 0 }}>{level.speed} km/h</div>
