@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { launches } from "./data/launches";
 import { fetchForecast, HourlyData, DailyData } from "./utils/api";
 import { windDegToCardinal, getWeatherIcon, getDayLabel, formatHour } from "./utils/meteoCalculations";
@@ -30,9 +30,9 @@ export default function App() {
   const site = launches.find(l => l.id === selectedId)!;
   const raw = siteData.get(selectedId);
 
-  function scoreFor(lat: number, lon: number): number {
-    const entry = siteData.get(launches.find(l2 => l2.lat === lat && l2.lon === lon)?.id || "");
-    if (!entry || !Array.isArray(entry.hourly) || !Array.isArray(entry.daily) || entry.daily.length === 0) return 0;
+  const siteScore = useMemo(() => {
+    const entry = siteData.get(selectedId);
+    if (!entry || !entry.daily || entry.daily.length === 0) return 0;
     const todayDate = entry.daily[0].date;
     const h = entry.hourly.filter(x => {
       const hr = parseInt(x.time.slice(11, 13), 10);
@@ -48,16 +48,40 @@ export default function App() {
     if (cloud < 30) s += 10;
     else if (cloud > 70) s -= 10;
     return Math.max(0, Math.min(100, s));
-  }
+  }, [siteData, selectedId]);
 
-  const sorted = launches
-    .map(l => ({ l, score: scoreFor(l.lat, l.lon) }))
-    .filter(x => !search || x.l.name.toLowerCase().includes(search.toLowerCase()) || x.l.valley.toLowerCase().includes(search.toLowerCase()))
-    .sort((a, b) => b.score - a.score);
+  const sorted = useMemo(() => {
+    const list = launches.map(l => {
+      const entry = siteData.get(l.id);
+      let score = 0;
+      if (entry && entry.daily && entry.daily.length > 0) {
+        const todayDate = entry.daily[0].date;
+        const h = entry.hourly.filter(x => {
+          const hr = parseInt(x.time.slice(11, 13), 10);
+          return hr >= 10 && hr <= 16 && x.time.slice(0, 10) === todayDate;
+        });
+        if (h.length > 0) {
+          const wind = h.reduce((s, x) => s + x.windSpeed10m, 0) / h.length;
+          const cloud = h.reduce((s, x) => s + x.cloudCover, 0) / h.length;
+          score = 50;
+          if (wind >= 8 && wind <= 20) score += 20;
+          else if (wind < 5) score -= 10;
+          else if (wind > 25) score -= 25;
+          if (cloud < 30) score += 10;
+          else if (cloud > 70) score -= 10;
+          score = Math.max(0, Math.min(100, score));
+        }
+      }
+      return { l, score };
+    });
+    if (!search) return list.sort((a, b) => b.score - a.score);
+    const q = search.toLowerCase();
+    return list.filter(x => x.l.name.toLowerCase().includes(q) || x.l.valley.toLowerCase().includes(q)).sort((a, b) => b.score - a.score);
+  }, [siteData, search]);
 
-  const siteScore = sorted.find(s => s.l.id === selectedId)?.score ?? 0;
-  const siteColor = siteScore >= 80 ? '#00FF8C' : siteScore >= 60 ? '#4DA3FF' : siteScore >= 40 ? '#FFC857' : siteScore >= 20 ? '#FF9F1C' : '#FF4E4E';
-  const siteRating = siteScore >= 80 ? 'Eccellente' : siteScore >= 60 ? 'Buono' : siteScore >= 40 ? 'Discreto' : siteScore >= 20 ? 'Difficile' : 'Sconsigliato';
+  const siteScoreValue = sorted.find(s => s.l.id === selectedId)?.score ?? 0;
+  const siteColor = siteScoreValue >= 80 ? '#00FF8C' : siteScoreValue >= 60 ? '#4DA3FF' : siteScoreValue >= 40 ? '#FFC857' : siteScoreValue >= 20 ? '#FF9F1C' : '#FF4E4E';
+  const siteRating = siteScoreValue >= 80 ? 'Eccellente' : siteScoreValue >= 60 ? 'Buono' : siteScoreValue >= 40 ? 'Discreto' : siteScoreValue >= 20 ? 'Difficile' : 'Sconsigliato';
 
   const currentDaily = raw?.daily?.length ? raw.daily[Math.min(dayIdx, raw.daily.length - 1)] : null;
   const currentDate = currentDaily ? currentDaily.date : "";
@@ -127,15 +151,15 @@ export default function App() {
                     <p style={{ fontSize: '0.75rem', color: '#666', margin: '2px 0 0' }}>{site.valley} · {site.elevation}m · {site.exposure}</p>
                   </div>
                   <div style={{ textAlign: 'center' }}>
-                    <div style={{ fontSize: '2rem', fontWeight: 700, fontFamily: 'monospace', color: siteColor }}>{siteScore}</div>
+                    <div style={{ fontSize: '2rem', fontWeight: 700, fontFamily: 'monospace', color: siteColor }}>{siteScoreValue}</div>
                     <div style={{ fontSize: '0.65rem', color: siteColor, fontWeight: 600 }}>{siteRating}</div>
                   </div>
                 </div>
               </div>
 
-              {currentDaily && (
+              {raw && raw.daily && raw.daily.length > 0 && (
                 <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
-                  {(raw?.daily || []).map((d, i) => (
+                  {raw.daily.map((d, i) => (
                     <button
                       key={d.date}
                       onClick={() => setDayIdx(i)}
