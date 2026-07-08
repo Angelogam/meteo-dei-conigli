@@ -51,7 +51,7 @@ export const launches: Launch[] = [
 // ── Utility ──
 function degreesToCompass(deg: number): string {
   const dirs = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"];
-  return dirs[Math.round(deg / 45) % 8];
+  return dirs[Math.round(((deg % 360) / 45)) % 8];
 }
 
 function getDescription(icon: string): string {
@@ -68,22 +68,20 @@ function getDescription(icon: string): string {
 }
 
 function getIcon(cloudCover: number, precipitation: number): string {
-  if (precipitation > 5) return "thunder";
-  if (precipitation > 0.2) return "rain";
+  if (precipitation > 5) return "rain";
+  if (precipitation > 0.2) return "cloud-sun";
   if (cloudCover < 20) return "sun";
   if (cloudCover < 60) return "cloud-sun";
   return "cloud";
 }
 
-function estimateThermalLabel(deltaT: number, windSpeed: number, cloudCover: number): { label: string; quality: number } {
+function estimateThermal(deltaT: number, windSpeed: number, cloudCover: number): { label: string; quality: number } {
   let score = 0;
   if (deltaT >= 6) score += 3;
   else if (deltaT >= 4) score += 2;
   else if (deltaT >= 2) score += 1;
-
   if (windSpeed < 8) score += 2;
   else if (windSpeed < 15) score += 1;
-
   if (cloudCover < 30) score += 2;
   else if (cloudCover < 60) score += 1;
 
@@ -110,19 +108,19 @@ function estimatePlafond(deltaT: number, cloudCover: number, elevation: number):
   return Math.round(elevation + deltaT * 150 + 500);
 }
 
-function buildTips(d: DailyForecast, launch: Launch): string[] {
+function buildTips(windSpeed: number, gusts: number | null, cloudCover: number, thermalQuality: number, precipitation: number, visibility: number, deltaT: number, windDir: string, launchName: string, windSectors: string[]): string[] {
   const tips: string[] = [];
-  if (d.windSpeed > 25) tips.push("💨 Vento forte — valuta se decollare");
-  if (d.windSpeed < 3) tips.push("🍃 Vento debole — potresti aver bisogno di aiuto");
-  if (d.gusts && d.gusts > 30) tips.push("⚡ Raffiche sostenute — massima attenzione");
-  if (d.cloudCover > 70) tips.push("☁️ Cielo molto nuvoloso — portati via cavo");
-  if (d.cloudCover < 20 && d.thermalQuality >= 2) tips.push("🔆 Bel sole — termiche attese");
-  if (d.precipitation > 0.2) tips.push("🌧️ Precipitazioni in arrivo — monitora");
-  if (d.visibility < 5) tips.push("🌫️ Visibilità ridotta — stai vicino");
-  if (d.deltaT < 2) tips.push("❄️ Delta termico basso — termiche difficili");
-  if (d.deltaT > 6) tips.push("🔥 Delta termico alto — termiche forti, atterra prima");
-  if (launch.windSectors.length > 0 && !launch.windSectors.some((s) => d.windDir.includes(s))) {
-    tips.push(`🧭 Vento da ${d.windDir} non ideale per ${launch.name}`);
+  if (windSpeed > 25) tips.push("💨 Vento forte — valuta se decollare");
+  if (windSpeed < 3) tips.push("🍃 Vento debole — potresti aver bisogno di aiuto");
+  if (gusts && gusts > 30) tips.push("⚡ Raffiche sostenute — massima attenzione");
+  if (cloudCover > 70) tips.push("☁️ Cielo molto nuvoloso — portati via cavo");
+  if (cloudCover < 20 && thermalQuality >= 2) tips.push("🔆 Bel sole — termiche attese");
+  if (precipitation > 0.2) tips.push("🌧️ Precipitazioni in arrivo — monitora");
+  if (visibility < 5) tips.push("🌫️ Visibilità ridotta — stai vicino");
+  if (deltaT < 2) tips.push("❄️ Delta termico basso — termiche difficili");
+  if (deltaT > 6) tips.push("🔥 Delta termico alto — termiche forti, atterra prima");
+  if (windSectors.length > 0 && !windSectors.some((s) => windDir.includes(s))) {
+    tips.push(`🧭 Vento da ${windDir} non ideale per ${launchName}`);
   }
   return tips;
 }
@@ -158,24 +156,23 @@ export async function fetchWeatherForecast(launch: Launch): Promise<DailyForecas
   const days: DailyForecast[] = [];
 
   for (let d = 0; d < Math.min(daily.time.length, 3); d++) {
-    // medie orarie 7-19 (finestra termica)
     const dayStart = d * 24;
     const dayEnd = dayStart + 24;
-    const indices: number[] = [];
-    for (let h = dayStart; h < dayEnd; h++) {
-      if (hourly.time && hourly.time[h]) indices.push(h);
-    }
 
     const avg = (arr: (number | undefined | null)[]): number => {
       const vals = arr.filter((v): v is number => v != null && !isNaN(v));
       return vals.length > 0 ? vals.reduce((a, b) => a + b, 0) / vals.length : 0;
     };
 
-    const temps = indices.map((i) => hourly.temperature_2m[i]);
-    const humidities = indices.map((i) => hourly.relative_humidity_2m[i]);
+    const indices: number[] = [];
+    for (let h = dayStart; h < dayEnd; h++) {
+      if (hourly.time && hourly.time[h]) indices.push(h);
+    }
+
     const winds = indices.map((i) => hourly.wind_speed_10m[i]);
     const windDirs = indices.map((i) => hourly.wind_direction_10m[i]);
     const clouds = indices.map((i) => hourly.cloud_cover[i]);
+    const humidities = indices.map((i) => hourly.relative_humidity_2m[i]);
     const visibilities = indices.map((i) => hourly.visibility[i]);
 
     const windAvg = avg(winds);
@@ -187,11 +184,13 @@ export async function fetchWeatherForecast(launch: Launch): Promise<DailyForecas
     const gustsAvg = avg(winds.map((w) => (w ?? 0) * 1.35));
 
     // temperatura media delle ore centrali (11-16)
-    const centralIndices = [11, 12, 13, 14, 15, 16].filter((h) => h + dayStart < dayEnd);
-    const centralTemps = centralIndices.map((h) => hourly.temperature_2m[dayStart + h]);
+    const centralIndices = [11, 12, 13, 14, 15, 16]
+      .filter((h) => h + dayStart < dayEnd)
+      .map((h) => dayStart + h);
+    const centralTemps = centralIndices.map((h) => hourly.temperature_2m[h]);
     const avgTemp = avg(centralTemps);
 
-    // deltaT stimato
+    // deltaT stimato: temperatura media ore centrali - gradiente adiabatico secco
     const deltaT = Math.round((avgTemp - (launch.elevation / 100) * 0.65) * 10) / 10;
 
     const dailyPrecip = daily.precipitation_sum[d] ?? 0;
@@ -200,15 +199,16 @@ export async function fetchWeatherForecast(launch: Launch): Promise<DailyForecas
 
     const icon = getIcon(cloudAvg, dailyPrecip);
     const desc = getDescription(icon);
-    const thermal = estimateThermalLabel(deltaT, windAvg, cloudAvg);
+    const thermal = estimateThermal(deltaT, windAvg, cloudAvg);
     const xc = estimateXc(deltaT, windAvg, cloudAvg);
     const plafond = estimatePlafond(deltaT, cloudAvg, launch.elevation);
+    const windDirStr = windDirAvg != null ? degreesToCompass(windDirAvg) : "—";
 
     const day: DailyForecast = {
       tempMax: Math.round(dailyTempMax),
       tempMin: Math.round(dailyTempMin),
       windSpeed: Math.round(windAvg * 10) / 10,
-      windDir: windDirAvg != null ? degreesToCompass(windDirAvg) : "—",
+      windDir: windDirStr,
       gusts: Math.round(gustsAvg * 10) / 10,
       cloudCover: Math.round(cloudAvg),
       humidity: Math.round(humidityAvg),
@@ -222,10 +222,7 @@ export async function fetchWeatherForecast(launch: Launch): Promise<DailyForecas
       xcLabel: xc.label,
       xcScore: xc.score,
       plafond,
-      tips: buildTips(
-        { ...day, thermalLabel: thermal.label, thermalQuality: thermal.quality, deltaT, xcLabel: xc.label, xcScore: xc.score, plafond, tips: [] },
-        launch
-      ),
+      tips: buildTips(windAvg, Math.round(gustsAvg * 10) / 10, cloudAvg, thermal.quality, dailyPrecip, visibilityKm, deltaT, windDirStr, launch.name, launch.windSectors),
     };
 
     days.push(day);

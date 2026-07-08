@@ -16,48 +16,6 @@ function WeatherBadge({ icon, label }: { icon: React.ReactNode; label: string })
   );
 }
 
-function Gauge({ value, max, label, color = "bg-emerald-500" }: { value: number; max: number; label: string; color?: string }) {
-  const pct = Math.min((value / max) * 100, 100);
-  return (
-    <div className="space-y-1">
-      <div className="flex justify-between text-xs text-zinc-400">
-        <span>{label}</span>
-        <span>{value}</span>
-      </div>
-      <div className="h-1.5 bg-zinc-700 rounded-full overflow-hidden">
-        <div className={`h-full rounded-full ${color} transition-all`} style={{ width: `${pct}%` }} />
-      </div>
-    </div>
-  );
-}
-
-function Divider() {
-  return <div className="h-px bg-gradient-to-r from-transparent via-zinc-700 to-transparent" />;
-}
-
-function getWeatherIcon(type: string, size = 16, color = "#a1a1aa") {
-  const icons: Record<string, string> = {
-    sun: "☀️",
-    "cloud-sun": "⛅",
-    cloud: "☁️",
-    rain: "🌧️",
-    thunder: "⛈️",
-    snow: "❄️",
-    fog: "🌫️",
-    wind: "💨",
-    droplet: "💧",
-    thermometer: "🌡️",
-    eye: "👁️",
-    flame: "🔥",
-    plane: "🪂",
-    mountain: "⛰️",
-    star: "⭐",
-    moon: "🌙",
-    clock: "🕐",
-  };
-  return <span style={{ fontSize: size }}>{icons[type] || "❓"}</span>;
-}
-
 function DayHeader({ tab, active, onSelect }: { tab: Tab; active: boolean; onSelect: () => void }) {
   const labels: Record<Tab, string> = { oggi: "Oggi", domani: "Domani", dopodomani: "Dopodomani" };
   return (
@@ -79,7 +37,15 @@ function DailyCard({ day, isFirst }: { day: DailyForecast; isFirst: boolean }) {
       {/* riga superiore: icona + temp */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          {getWeatherIcon(day.icon, 28)}
+          <span style={{ fontSize: 28 }}>{
+            day.icon === "sun" ? "☀️" :
+            day.icon === "cloud-sun" ? "⛅" :
+            day.icon === "cloud" ? "☁️" :
+            day.icon === "rain" ? "🌧️" :
+            day.icon === "thunder" ? "⛈️" :
+            day.icon === "snow" ? "❄️" :
+            "🌫️"
+          }</span>
           <span className="text-3xl font-bold text-white">{Math.round(day.tempMax)}°</span>
           <span className="text-sm text-zinc-500">/ {Math.round(day.tempMin)}°</span>
         </div>
@@ -141,7 +107,7 @@ function DailyCard({ day, isFirst }: { day: DailyForecast; isFirst: boolean }) {
         ))}
       </div>
 
-      {!isFirst && <Divider />}
+      {!isFirst && <div className="h-px bg-gradient-to-r from-transparent via-zinc-700 to-transparent" />}
     </div>
   );
 }
@@ -174,7 +140,7 @@ export default function App() {
 
   const tabIndex = useMemo(() => (activeTab === "oggi" ? 0 : activeTab === "domani" ? 1 : 2), [activeTab]);
 
-  if (loading) {
+  if (loading && !forecast) {
     return (
       <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
         <div className="text-center space-y-4">
@@ -185,7 +151,7 @@ export default function App() {
     );
   }
 
-  if (error) {
+  if (error && !forecast) {
     return (
       <div className="min-h-screen bg-zinc-950 flex items-center justify-center p-4">
         <div className="bg-red-900/20 border border-red-800/40 rounded-2xl p-6 max-w-md text-center space-y-3">
@@ -241,7 +207,7 @@ export default function App() {
                           l.name === selectedLaunch ? "bg-emerald-600/20 text-emerald-400" : "text-zinc-300 hover:bg-zinc-700"
                         )}
                       >
-                        {l.name} — {l.valley}
+                        {l.name}
                       </button>
                     ))}
                   </div>
@@ -277,7 +243,14 @@ export default function App() {
         {forecast && forecast[tabIndex] ? (
           <DailyCard key={tabIndex} day={forecast[tabIndex]} isFirst={tabIndex === 0} />
         ) : (
-          <p className="text-zinc-500 text-sm">Nessun dato disponibile per questo giorno.</p>
+          forecast && <p className="text-zinc-500 text-sm">Nessun dato disponibile per questo giorno.</p>
+        )}
+
+        {loading && forecast && (
+          <div className="flex items-center justify-center gap-2 text-zinc-500 text-sm">
+            <Loader2 size={16} className="animate-spin" />
+            <span>Aggiornamento…</span>
+          </div>
         )}
       </main>
 
