@@ -20,29 +20,6 @@ export interface WeatherIconProps {
     | "moon"
     | "clock";
   size?: number;
-  color?: string<dyad-write path="src/components/WeatherIcon.tsx" description="Aggiunta icona clock e fix complete">
-import React from "react";
-
-export interface WeatherIconProps {
-  type:
-    | "sun"
-    | "cloud-sun"
-    | "cloud"
-    | "rain"
-    | "snow"
-    | "thunder"
-    | "fog"
-    | "wind"
-    | "droplet"
-    | "thermometer"
-    | "eye"
-    | "flame"
-    | "plane"
-    | "mountain"
-    | "star"
-    | "moon"
-    | "clock";
-  size?: number;
   color?: string;
   animated?: boolean;
 }
@@ -271,7 +248,7 @@ function ClockIcon({ size, color }: { size: number; color: string }) {
 /**
  * Componente icona meteo vettoriale – sostituisce tutte le emoji.
  */
-export function WeatherIcon({ type, size = 24, color = "#aaa", animated = true }: WeatherIconProps) {
+export function WeatherIcon({ type, size = 24, color = "#aaa" }: WeatherIconProps) {
   const iconMap: Record<string, React.ReactNode> = {
     sun: <SunIcon size={size} color={color} />,
     "cloud-sun": <CloudSunIcon size={size} color={color} />,
@@ -296,12 +273,12 @@ export function WeatherIcon({ type, size = 24, color = "#aaa", animated = true }
 }
 
 /**
- * Funzione helper: sceglie l'icona corretta in base alla copertura nuvolosa e parametri.
+ * Funzione helper: sceglie l'icona corretta in base a copertura nuvolosa e precipitazioni.
  */
 export function getWeatherIconType(cloudCover: number, precipitation: number, isDay: number): "sun" | "cloud-sun" | "cloud" | "rain" | "thunder" {
   if (precipitation > 2) return "thunder";
   if (precipitation > 0) return "rain";
-  if (cloudCover < 20) return isDay ? "sun" : "moon" as any;
+  if (cloudCover < 20) return isDay ? "sun" : "cloud-sun";
   if (cloudCover < 50) return "cloud-sun";
   return "cloud";
 }
