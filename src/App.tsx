@@ -128,7 +128,7 @@ export default function App() {
                   </span>
                 </div>
                 <div style={{ fontSize: "0.75rem", color: "#888", marginBottom: 4 }}>
-                  {l.valley} &bull; {l.exposure}
+                  {l.valley}
                 </div>
                 <span
                   style={{
@@ -149,7 +149,7 @@ export default function App() {
               <div style={styles.siteHeader}>
                 <div>
                   <h2 style={{ fontSize: "1.6rem", color: "#fff", margin: 0 }}>{site.name}</h2>
-                  <span style={{ color: "#888", fontSize: "0.85rem" }}>{site.exposure} &bull; {site.valley}</span>
+                  <span style={{ color: "#888", fontSize: "0.85rem" }}>{site.valley}</span>
                 </div>
                 <div style={styles.weatherNow}>
                   <span style={{ fontSize: "2rem" }}>{getWeatherIcon(currentData.weatherCode, currentData.isDay)}</span>
