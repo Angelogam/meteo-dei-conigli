@@ -20,21 +20,6 @@ export function getWeatherIcon(code: number, isDay: boolean): string {
   return map[code] || (isDay ? '☀️' : '🌙');
 }
 
-export function getWeatherDescription(code: number): string {
-  const map: Record<number, string> = {
-    0: 'Sereno', 1: 'Poco nuvoloso', 2: 'Parzialmente nuvoloso', 3: 'Nuvoloso',
-    45: 'Nebbia', 48: 'Nebbia ghiacciata', 51: 'Pioviggine lieve', 53: 'Pioviggine moderata', 55: 'Pioviggine densa',
-    56: 'Pioviggine gelata lieve', 57: 'Pioviggine gelata densa',
-    61: 'Pioggia debole', 63: 'Pioggia moderata', 65: 'Pioggia forte',
-    66: 'Pioggia gelata debole', 67: 'Pioggia gelata forte',
-    71: 'Neve debole', 73: 'Neve moderata', 75: 'Neve forte', 77: 'Granelli di neve',
-    80: 'Rovescio debole', 81: 'Rovescio moderato', 82: 'Rovescio violento',
-    85: 'Rovescio di neve debole', 86: 'Rovescio di neve forte',
-    95: 'Temporale', 96: 'Temporale con grandine', 99: 'Temporale forte con grandine',
-  };
-  return map[code] || 'Variabile';
-}
-
 export function getCloudDescription(cloud: number): string {
   if (cloud < 10) return 'Sereno';
   if (cloud < 30) return 'Poco nuvoloso';
