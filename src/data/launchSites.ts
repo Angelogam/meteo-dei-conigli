@@ -1,4 +1,4 @@
-export interface Launch {
+export interface LaunchSite {
   id: string;
   name: string;
   lat: number;
@@ -9,13 +9,12 @@ export interface Launch {
   difficulty: 1 | 2 | 3 | 4 | 5;
 }
 
-export const launches: Launch[] = [
+export const launchSites: LaunchSite[] = [
   { id: "malanotte", name: "Malanotte", lat: 44.4157, lon: 7.1333, elevation: 1740, exposure: "S/SE", valley: "Valle Infernotto", difficulty: 3 },
   { id: "colle_tenda", name: "Colle di Tenda", lat: 44.1509, lon: 7.5693, elevation: 1870, exposure: "S", valley: "Valle Roya/Vermenagna", difficulty: 2 },
   { id: "boves", name: "Boves", lat: 44.3211, lon: 7.5447, elevation: 1310, exposure: "S", valley: "Cuneese", difficulty: 1 },
   { id: "monte_male", name: "Monte Male – Dronero", lat: 44.4316, lon: 7.3629, elevation: 1530, exposure: "S", valley: "Valle Maira", difficulty: 3 },
   { id: "iretta", name: "Iretta", lat: 44.4989, lon: 7.3820, elevation: 1480, exposure: "S", valley: "Valle Maira", difficulty: 2 },
-  { id: "val_mala", name: "Pratoni di Val Mala", lat: 44.5078, lon: 7.3466, elevation: 1560, exposure: "S", valley: "Valle Maira", difficulty: 2 },
   { id: "birrone", name: "Monte Birrone", lat: 44.5399, lon: 7.2529, elevation: 2131, exposure: "S", valley: "Valle Maira", difficulty: 4 },
   { id: "agnello", name: "Colle dell'Agnello", lat: 44.6828, lon: 6.9782, elevation: 2744, exposure: "S", valley: "Valle Varaita", difficulty: 5 },
   { id: "pian_mune_alto", name: "Pian Munè – Seggiovia", lat: 44.6386, lon: 7.2309, elevation: 1500, exposure: "S/SW", valley: "Valle Po", difficulty: 2 },
