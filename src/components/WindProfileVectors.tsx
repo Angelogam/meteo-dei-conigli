@@ -76,11 +76,9 @@ export default function WindProfileVectors({ data, maxSpeed }: Props) {
               fontSize: "0.9rem",
             }}
           >
-            {/* Quota */}
+            {/* Quota - sempre in metri */}
             <span style={{ fontWeight: "bold", color: "#aaa", fontSize: "0.85rem" }}>
-              {level.altitude >= 1000
-                ? `${(level.altitude / 1000).toFixed(1)} km`
-                : `${level.altitude} m`}
+              {level.altitude} m
             </span>
 
             {/* Barra + freccia */}
@@ -118,7 +116,7 @@ export default function WindProfileVectors({ data, maxSpeed }: Props) {
                       fontWeight: "bold",
                       color: "#fff",
                       whiteSpace: "nowrap",
-                      opacity: barWidth > 30 ? 1 : 0, // nascondi testo se barra troppo corta
+                      opacity: barWidth > 30 ? 1 : 0,
                     }}
                   >
                     {dirLabel}
