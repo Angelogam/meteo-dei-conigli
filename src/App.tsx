@@ -32,13 +32,14 @@ export default function App() {
 
   function scoreFor(lat: number, lon: number): number {
     const me = siteData.get(launches.find(l2 => l2.lat === lat && l2.lon === lon)?.id || "");
-    if (!me) return 0;
+    if (!me || !me.hourly || !me.daily) return 0;
     const h = me.hourly.filter(x => {
       const hr = parseInt(x.time.slice(11, 13));
       return hr >= 10 && hr <= 16 && x.time.startsWith(me.daily[0]?.date || "");
     });
-    const wind = h.reduce((s, x) => s + x.windSpeed10m, 0) / (h.length || 1);
-    const cloud = h.reduce((s, x) => s + x.cloudCover, 0) / (h.length || 1);
+    if (h.length === 0) return 0;
+    const wind = h.reduce((s, x) => s + x.windSpeed10m, 0) / h.length;
+    const cloud = h.reduce((s, x) => s + x.cloudCover, 0) / h.length;
     let s = 50;
     if (wind >= 8 && wind <= 20) s += 20;
     else if (wind < 5) s -= 10;
@@ -57,11 +58,12 @@ export default function App() {
   const siteColor = siteScore >= 80 ? '#00FF8C' : siteScore >= 60 ? '#4DA3FF' : siteScore >= 40 ? '#FFC857' : siteScore >= 20 ? '#FF9F1C' : '#FF4E4E';
   const siteRating = siteScore >= 80 ? 'Eccellente' : siteScore >= 60 ? 'Buono' : siteScore >= 40 ? 'Discreto' : siteScore >= 20 ? 'Difficile' : 'Sconsigliato';
 
-  const currentDaily = raw?.daily[dayIdx];
-  const currentHours = raw?.hourly.filter(x => {
+  const currentDaily = raw?.daily && raw.daily.length > 0 ? raw.daily[Math.min(dayIdx, raw.daily.length - 1)] : null;
+  const currentHours = (raw?.hourly || []).filter(x => {
+    if (!currentDaily) return false;
     const hr = parseInt(x.time.slice(11, 13));
-    return x.time.startsWith(currentDaily?.date || "") && hr >= 7 && hr <= 20;
-  }) || [];
+    return x.time.startsWith(currentDaily.date) && hr >= 7 && hr <= 20;
+  });
 
   return (
     <div style={{ background: '#0a0a12', minHeight: '100vh', color: '#eee', fontFamily: 'system-ui,sans-serif', padding: 16 }}>
@@ -130,7 +132,7 @@ export default function App() {
                 </div>
               </div>
 
-              {raw && (
+              {raw && raw.daily && raw.daily.length > 0 && (
                 <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
                   {raw.daily.map((d, i) => (
                     <button
