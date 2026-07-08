@@ -33,25 +33,138 @@ export interface DailyForecast {
 
 // ── Decolli ──
 export const launches: Launch[] = [
-  { name: "Malanotte",       lat: 44.4157, lng: 7.1333, elevation: 1740, valley: "Valle Infernotto", exposure: "S/SE", windSectors: ["S", "SE", "E"] },
-  { name: "Pian del Re",     lat: 44.4319, lng: 7.1278, elevation: 1850, valley: "Valle Infernotto", exposure: "S",    windSectors: ["S", "SW", "SE"] },
-  { name: "Colle della Vaccera", lat: 44.9317, lng: 7.2169, elevation: 1530, valley: "Val Chisone", exposure: "S",   windSectors: ["S", "SW"] },
-  { name: "Bric di Rubiana", lat: 45.1347, lng: 7.2689, elevation: 1380, valley: "Val di Susa", exposure: "S",      windSectors: ["S", "SW", "SE"] },
-  { name: "Monte Ciabergia", lat: 44.3997, lng: 7.1361, elevation: 1680, valley: "Valle Infernotto", exposure: "S", windSectors: ["S", "SE"] },
-  { name: "Pian del Frais",  lat: 44.4261, lng: 7.1339, elevation: 1620, valley: "Valle Infernotto", exposure: "S", windSectors: ["S", "SW"] },
-  { name: "Lagnacco",        lat: 46.2125, lng: 13.3317, elevation: 280,  valley: "Friuli",          exposure: "S",    windSectors: ["S", "SW"] },
-  { name: "Monte Sant'Anna", lat: 46.2058, lng: 13.3200, elevation: 340,  valley: "Friuli",          exposure: "S/SE", windSectors: ["S", "SE"] },
-  { name: "Monte Cuarnan",   lat: 46.1917, lng: 13.3100, elevation: 480,  valley: "Friuli",          exposure: "S/SE", windSectors: ["S", "SE", "E"] },
-  { name: "Gorizzo",         lat: 45.8711, lng: 12.8894, elevation: 15,   valley: "Pianura Friulana", exposure: "S",   windSectors: ["S", "SW", "E"] },
-  { name: "Fontanafredda",   lat: 45.9700, lng: 12.5900, elevation: 30,   valley: "Pianura PN",       exposure: "S",   windSectors: ["S", "SW"] },
-  { name: "Cimpello",        lat: 45.9131, lng: 12.6239, elevation: 20,   valley: "Pianura PN",       exposure: "S",   windSectors: ["S", "SW"] },
-  { name: "San Remigio",     lat: 45.9333, lng: 12.6167, elevation: 50,   valley: "Pianura PN",       exposure: "S",   windSectors: ["S", "SW", "E"] },
+  {
+    name: "Malanotte",
+    lat: 44.4157,
+    lng: 7.1333,
+    elevation: 1740,
+    valley: "Valle Infernotto",
+    exposure: "S/SE",
+    windSectors: ["S", "SE", "E"],
+  },
+  {
+    name: "Pian del Re",
+    lat: 44.4319,
+    lng: 7.1278,
+    elevation: 1850,
+    valley: "Valle Infernotto",
+    exposure: "S",
+    windSectors: ["S", "SW", "SE"],
+  },
+  {
+    name: "Colle della Vaccera",
+    lat: 44.9317,
+    lng: 7.2169,
+    elevation: 1530,
+    valley: "Val Chisone",
+    exposure: "S",
+    windSectors: ["S", "SW"],
+  },
+  {
+    name: "Bric di Rubiana",
+    lat: 45.1347,
+    lng: 7.2689,
+    elevation: 1380,
+    valley: "Val di Susa",
+    exposure: "S",
+    windSectors: ["S", "SW", "SE"],
+  },
+  {
+    name: "Monte Ciabergia",
+    lat: 44.3997,
+    lng: 7.1361,
+    elevation: 1680,
+    valley: "Valle Infernotto",
+    exposure: "S",
+    windSectors: ["S", "SE"],
+  },
+  {
+    name: "Pian del Frais",
+    lat: 44.4261,
+    lng: 7.1339,
+    elevation: 1620,
+    valley: "Valle Infernotto",
+    exposure: "S",
+    windSectors: ["S", "SW"],
+  },
+  {
+    name: "Lagnacco",
+    lat: 46.2125,
+    lng: 13.3317,
+    elevation: 280,
+    valley: "Friuli",
+    exposure: "S",
+    windSectors: ["S", "SW"],
+  },
+  {
+    name: "Monte Sant'Anna",
+    lat: 46.2058,
+    lng: 13.32,
+    elevation: 340,
+    valley: "Friuli",
+    exposure: "S/SE",
+    windSectors: ["S", "SE"],
+  },
+  {
+    name: "Monte Cuarnan",
+    lat: 46.1917,
+    lng: 13.31,
+    elevation: 480,
+    valley: "Friuli",
+    exposure: "S/SE",
+    windSectors: ["S", "SE", "E"],
+  },
+  {
+    name: "Gorizzo",
+    lat: 45.8711,
+    lng: 12.8894,
+    elevation: 15,
+    valley: "Pianura Friulana",
+    exposure: "S",
+    windSectors: ["S", "SW", "E"],
+  },
+  {
+    name: "Fontanafredda",
+    lat: 45.97,
+    lng: 12.59,
+    elevation: 30,
+    valley: "Pianura PN",
+    exposure: "S",
+    windSectors: ["S", "SW"],
+  },
+  {
+    name: "Cimpello",
+    lat: 45.9131,
+    lng: 12.6239,
+    elevation: 20,
+    valley: "Pianura PN",
+    exposure: "S",
+    windSectors: ["S", "SW"],
+  },
+  {
+    name: "San Remigio",
+    lat: 45.9333,
+    lng: 12.6167,
+    elevation: 50,
+    valley: "Pianura PN",
+    exposure: "S",
+    windSectors: ["S", "SW", "E"],
+  },
 ];
 
 // ── Utility ──
+
 function degreesToCompass(deg: number): string {
   const dirs = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"];
   return dirs[Math.round(((deg % 360) / 45)) % 8];
+}
+
+function getIcon(cloudCover: number, precipitation: number): string {
+  if (precipitation > 5) return "rain";
+  if (precipitation > 0.2) return "cloud-sun";
+  if (cloudCover < 20) return "sun";
+  if (cloudCover < 60) return "cloud-sun";
+  return "cloud";
 }
 
 function getDescription(icon: string): string {
@@ -67,15 +180,11 @@ function getDescription(icon: string): string {
   return map[icon] || "—";
 }
 
-function getIcon(cloudCover: number, precipitation: number): string {
-  if (precipitation > 5) return "rain";
-  if (precipitation > 0.2) return "cloud-sun";
-  if (cloudCover < 20) return "sun";
-  if (cloudCover < 60) return "cloud-sun";
-  return "cloud";
-}
-
-function estimateThermal(deltaT: number, windSpeed: number, cloudCover: number): { label: string; quality: number } {
+function estimateThermal(
+  deltaT: number,
+  windSpeed: number,
+  cloudCover: number
+): { label: string; quality: number } {
   let score = 0;
   if (deltaT >= 6) score += 3;
   else if (deltaT >= 4) score += 2;
@@ -91,7 +200,11 @@ function estimateThermal(deltaT: number, windSpeed: number, cloudCover: number):
   return { label: "Assenti", quality: 1 };
 }
 
-function estimateXc(deltaT: number, windSpeed: number, cloudCover: number): { label: string; score: number } {
+function estimateXc(
+  deltaT: number,
+  windSpeed: number,
+  cloudCover: number
+): { label: string; score: number } {
   let s = 0;
   if (deltaT >= 5) s += 2;
   else if (deltaT >= 3) s += 1;
@@ -103,30 +216,63 @@ function estimateXc(deltaT: number, windSpeed: number, cloudCover: number): { la
   return { label: "Sconsigliato", score: 1 };
 }
 
-function estimatePlafond(deltaT: number, cloudCover: number, elevation: number): number | null {
-  if (cloudCover >= 80) return Math.round(elevation + deltaT * 100 + 200);
+function estimatePlafond(
+  deltaT: number,
+  cloudCover: number,
+  elevation: number
+): number | null {
+  if (cloudCover >= 80)
+    return Math.round(elevation + deltaT * 100 + 200);
   return Math.round(elevation + deltaT * 150 + 500);
 }
 
-function buildTips(windSpeed: number, gusts: number | null, cloudCover: number, thermalQuality: number, precipitation: number, visibility: number, deltaT: number, windDir: string, launchName: string, windSectors: string[]): string[] {
+function buildTips(params: {
+  windSpeed: number;
+  gusts: number | null;
+  cloudCover: number;
+  thermalQuality: number;
+  precipitation: number;
+  visibility: number;
+  deltaT: number;
+  windDir: string;
+  launchName: string;
+  windSectors: string[];
+}): string[] {
   const tips: string[] = [];
-  if (windSpeed > 25) tips.push("💨 Vento forte — valuta se decollare");
-  if (windSpeed < 3) tips.push("🍃 Vento debole — potresti aver bisogno di aiuto");
-  if (gusts && gusts > 30) tips.push("⚡ Raffiche sostenute — massima attenzione");
-  if (cloudCover > 70) tips.push("☁️ Cielo molto nuvoloso — portati via cavo");
-  if (cloudCover < 20 && thermalQuality >= 2) tips.push("🔆 Bel sole — termiche attese");
-  if (precipitation > 0.2) tips.push("🌧️ Precipitazioni in arrivo — monitora");
-  if (visibility < 5) tips.push("🌫️ Visibilità ridotta — stai vicino");
-  if (deltaT < 2) tips.push("❄️ Delta termico basso — termiche difficili");
-  if (deltaT > 6) tips.push("🔥 Delta termico alto — termiche forti, atterra prima");
-  if (windSectors.length > 0 && !windSectors.some((s) => windDir.includes(s))) {
-    tips.push(`🧭 Vento da ${windDir} non ideale per ${launchName}`);
+  if (params.windSpeed > 25)
+    tips.push("💨 Vento forte — valuta se decollare");
+  if (params.windSpeed < 3)
+    tips.push("🍃 Vento debole — potresti aver bisogno di aiuto");
+  if (params.gusts && params.gusts > 30)
+    tips.push("⚡ Raffiche sostenute — massima attenzione");
+  if (params.cloudCover > 70)
+    tips.push("☁️ Cielo molto nuvoloso — portati via cavo");
+  if (params.cloudCover < 20 && params.thermalQuality >= 2)
+    tips.push("🔆 Bel sole — termiche attese");
+  if (params.precipitation > 0.2)
+    tips.push("🌧️ Precipitazioni in arrivo — monitora");
+  if (params.visibility < 5)
+    tips.push("🌫️ Visibilità ridotta — stai vicino");
+  if (params.deltaT < 2)
+    tips.push("❄️ Delta termico basso — termiche difficili");
+  if (params.deltaT > 6)
+    tips.push("🔥 Delta termico alto — termiche forti, atterra prima");
+  if (
+    params.windSectors.length > 0 &&
+    !params.windSectors.some((s) => params.windDir.includes(s))
+  ) {
+    tips.push(
+      `🧭 Vento da ${params.windDir} non ideale per ${params.launchName}`
+    );
   }
   return tips;
 }
 
 // ── Fetch da Open-Meteo ──
-export async function fetchWeatherForecast(launch: Launch): Promise<DailyForecast[]> {
+
+export async function fetchWeatherForecast(
+  launch: Launch
+): Promise<DailyForecast[]> {
   const lat = launch.lat.toFixed(4);
   const lng = launch.lng.toFixed(4);
   const now = new Date();
@@ -143,7 +289,8 @@ export async function fetchWeatherForecast(launch: Launch): Promise<DailyForecas
     `&timezone=auto&start_date=${today}&end_date=${threeDays}`;
 
   const res = await fetch(url);
-  if (!res.ok) throw new Error(`Open-Meteo ha risposto con codice ${res.status}`);
+  if (!res.ok)
+    throw new Error(`Open-Meteo ha risposto con codice ${res.status}`);
 
   const data = await res.json();
   const daily = data.daily;
@@ -160,8 +307,12 @@ export async function fetchWeatherForecast(launch: Launch): Promise<DailyForecas
     const dayEnd = dayStart + 24;
 
     const avg = (arr: (number | undefined | null)[]): number => {
-      const vals = arr.filter((v): v is number => v != null && !isNaN(v));
-      return vals.length > 0 ? vals.reduce((a, b) => a + b, 0) / vals.length : 0;
+      const vals = arr.filter(
+        (v): v is number => v != null && !isNaN(v)
+      );
+      return vals.length > 0
+        ? vals.reduce((a, b) => a + b, 0) / vals.length
+        : 0;
     };
 
     const indices: number[] = [];
@@ -181,17 +332,24 @@ export async function fetchWeatherForecast(launch: Launch): Promise<DailyForecas
     const humidityAvg = avg(humidities);
     const visibilityAvg = avg(visibilities);
     const visibilityKm = Math.round(visibilityAvg / 1000);
-    const gustsAvg = avg(winds.map((w) => (w ?? 0) * 1.35));
+    const gustsAvg = avg(
+      winds.map((w) => (w ?? 0) * 1.35)
+    );
 
-    // temperatura media delle ore centrali (11-16)
+    // Temperatura media ore centrali (11-16)
     const centralIndices = [11, 12, 13, 14, 15, 16]
       .filter((h) => h + dayStart < dayEnd)
       .map((h) => dayStart + h);
-    const centralTemps = centralIndices.map((h) => hourly.temperature_2m[h]);
+    const centralTemps = centralIndices.map(
+      (h) => hourly.temperature_2m[h]
+    );
     const avgTemp = avg(centralTemps);
 
-    // deltaT stimato: temperatura media ore centrali - gradiente adiabatico secco
-    const deltaT = Math.round((avgTemp - (launch.elevation / 100) * 0.65) * 10) / 10;
+    // Delta T stimato
+    const deltaT =
+      Math.round(
+        (avgTemp - (launch.elevation / 100) * 0.65) * 10
+      ) / 10;
 
     const dailyPrecip = daily.precipitation_sum[d] ?? 0;
     const dailyTempMax = daily.temperature_2m_max[d] ?? 0;
@@ -201,8 +359,13 @@ export async function fetchWeatherForecast(launch: Launch): Promise<DailyForecas
     const desc = getDescription(icon);
     const thermal = estimateThermal(deltaT, windAvg, cloudAvg);
     const xc = estimateXc(deltaT, windAvg, cloudAvg);
-    const plafond = estimatePlafond(deltaT, cloudAvg, launch.elevation);
-    const windDirStr = windDirAvg != null ? degreesToCompass(windDirAvg) : "—";
+    const plafond = estimatePlafond(
+      deltaT,
+      cloudAvg,
+      launch.elevation
+    );
+    const windDirStr =
+      windDirAvg != null ? degreesToCompass(windDirAvg) : "—";
 
     const day: DailyForecast = {
       tempMax: Math.round(dailyTempMax),
@@ -222,7 +385,18 @@ export async function fetchWeatherForecast(launch: Launch): Promise<DailyForecas
       xcLabel: xc.label,
       xcScore: xc.score,
       plafond,
-      tips: buildTips(windAvg, Math.round(gustsAvg * 10) / 10, cloudAvg, thermal.quality, dailyPrecip, visibilityKm, deltaT, windDirStr, launch.name, launch.windSectors),
+      tips: buildTips({
+        windSpeed: windAvg,
+        gusts: Math.round(gustsAvg * 10) / 10,
+        cloudCover: cloudAvg,
+        thermalQuality: thermal.quality,
+        precipitation: dailyPrecip,
+        visibility: visibilityKm,
+        deltaT,
+        windDir: windDirStr,
+        launchName: launch.name,
+        windSectors: launch.windSectors,
+      }),
     };
 
     days.push(day);
