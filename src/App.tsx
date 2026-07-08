@@ -31,12 +31,12 @@ export default function App() {
   const raw = siteData.get(selectedId);
 
   function scoreFor(lat: number, lon: number): number {
-    const me = siteData.get(launches.find(l2 => l2.lat === lat && l2.lon === lon)?.id || "");
-    if (!me || !me.hourly || !me.daily || me.daily.length === 0) return 0;
-    const h = me.hourly.filter(x => {
+    const entry = siteData.get(launches.find(l2 => l2.lat === lat && l2.lon === lon)?.id || "");
+    if (!entry || !Array.isArray(entry.hourly) || !Array.isArray(entry.daily) || entry.daily.length === 0) return 0;
+    const todayDate = entry.daily[0].date;
+    const h = entry.hourly.filter(x => {
       const hr = parseInt(x.time.slice(11, 13), 10);
-      const day = x.time.slice(0, 10);
-      return hr >= 10 && hr <= 16 && day === me.daily[0].date;
+      return hr >= 10 && hr <= 16 && x.time.slice(0, 10) === todayDate;
     });
     if (h.length === 0) return 0;
     const wind = h.reduce((s, x) => s + x.windSpeed10m, 0) / h.length;
@@ -55,11 +55,11 @@ export default function App() {
     .filter(x => !search || x.l.name.toLowerCase().includes(search.toLowerCase()) || x.l.valley.toLowerCase().includes(search.toLowerCase()))
     .sort((a, b) => b.score - a.score);
 
-  const siteScore = scoreFor(site.lat, site.lon);
+  const siteScore = sorted.find(s => s.l.id === selectedId)?.score ?? 0;
   const siteColor = siteScore >= 80 ? '#00FF8C' : siteScore >= 60 ? '#4DA3FF' : siteScore >= 40 ? '#FFC857' : siteScore >= 20 ? '#FF9F1C' : '#FF4E4E';
   const siteRating = siteScore >= 80 ? 'Eccellente' : siteScore >= 60 ? 'Buono' : siteScore >= 40 ? 'Discreto' : siteScore >= 20 ? 'Difficile' : 'Sconsigliato';
 
-  const currentDaily = raw?.daily && raw.daily.length > 0 ? raw.daily[Math.min(dayIdx, raw.daily.length - 1)] : null;
+  const currentDaily = raw?.daily?.length ? raw.daily[Math.min(dayIdx, raw.daily.length - 1)] : null;
   const currentDate = currentDaily ? currentDaily.date : "";
   const currentHours = (raw?.hourly || []).filter(x => {
     const hr = parseInt(x.time.slice(11, 13), 10);
@@ -133,9 +133,9 @@ export default function App() {
                 </div>
               </div>
 
-              {raw && raw.daily && raw.daily.length > 0 && (
+              {currentDaily && (
                 <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
-                  {raw.daily.map((d, i) => (
+                  {(raw?.daily || []).map((d, i) => (
                     <button
                       key={d.date}
                       onClick={() => setDayIdx(i)}
@@ -179,6 +179,12 @@ export default function App() {
                       </div>
                     );
                   })}
+                </div>
+              )}
+
+              {!loading && currentHours.length === 0 && (
+                <div style={{ color: '#666', textAlign: 'center', padding: 40, fontSize: '0.85rem' }}>
+                  Nessun dato orario disponibile per {currentDaily?.date || "oggi"}.
                 </div>
               )}
             </div>
