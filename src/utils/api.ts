@@ -1,7 +1,6 @@
 export interface HourlyData {
   time: string;
   temperature2m: number;
-  dewPoint2m: number;
   relativeHumidity2m: number;
   precipitation: number;
   weatherCode: number;
@@ -17,7 +16,6 @@ export interface HourlyData {
   temperature700hPa: number;
   windSpeed700hPa: number;
   windDirection700hPa: number;
-  temperature500hPa: number;
   windSpeed500hPa: number;
   windDirection500hPa: number;
   cape: number;
@@ -30,11 +28,8 @@ export interface DailyData {
   weatherCode: number;
   tempMax: number;
   tempMin: number;
-  precipitationSum: number;
   precipitationProbabilityMax: number;
   windSpeedMax: number;
-  windGustsMax: number;
-  windDirectionDominant: number;
   uvIndexMax: number;
 }
 
@@ -51,28 +46,28 @@ function getDate(daysFromToday: number): string {
 
 export async function fetchForecast(lat: number, lon: number): Promise<ForecastResponse> {
   const today = getDate(0);
-  const day3 = getDate(2);
+  const day3 = getDate(3);
 
   const params = new URLSearchParams({
     latitude: lat.toString(),
     longitude: lon.toString(),
     hourly: [
-      'temperature_2m', 'dew_point_2m', 'relative_humidity_2m',
+      'temperature_2m', 'relative_humidity_2m',
       'precipitation', 'weather_code',
       'cloud_cover', 'visibility',
       'wind_speed_10m', 'wind_direction_10m', 'wind_gusts_10m',
       'surface_pressure',
       'temperature_850hPa', 'wind_speed_850hPa', 'wind_direction_850hPa',
       'temperature_700hPa', 'wind_speed_700hPa', 'wind_direction_700hPa',
-      'temperature_500hPa', 'wind_speed_500hPa', 'wind_direction_500hPa',
+      'wind_speed_500hPa', 'wind_direction_500hPa',
       'cape', 'lifted_index',
       'is_day',
     ].join(','),
     daily: [
       'weather_code',
       'temperature_2m_max', 'temperature_2m_min',
-      'precipitation_sum', 'precipitation_probability_max',
-      'wind_speed_10m_max', 'wind_gusts_10m_max', 'wind_direction_10m_dominant',
+      'precipitation_probability_max',
+      'wind_speed_10m_max',
       'uv_index_max',
     ].join(','),
     timezone: 'auto',
@@ -81,13 +76,12 @@ export async function fetchForecast(lat: number, lon: number): Promise<ForecastR
   });
 
   const res = await fetch(`https://api.open-meteo.com/v1/forecast?${params}`);
-  if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
   const data = await res.json();
 
   const hourly: HourlyData[] = data.hourly.time.map((t: string, i: number) => ({
     time: t,
     temperature2m: data.hourly.temperature_2m[i],
-    dewPoint2m: data.hourly.dew_point_2m[i],
     relativeHumidity2m: data.hourly.relative_humidity_2m[i],
     precipitation: data.hourly.precipitation[i] || 0,
     weatherCode: data.hourly.weather_code[i],
@@ -103,7 +97,6 @@ export async function fetchForecast(lat: number, lon: number): Promise<ForecastR
     temperature700hPa: data.hourly.temperature_700hPa[i],
     windSpeed700hPa: data.hourly.wind_speed_700hPa[i],
     windDirection700hPa: data.hourly.wind_direction_700hPa[i],
-    temperature500hPa: data.hourly.temperature_500hPa[i],
     windSpeed500hPa: data.hourly.wind_speed_500hPa[i],
     windDirection500hPa: data.hourly.wind_direction_500hPa[i],
     cape: data.hourly.cape[i] || 0,
@@ -116,11 +109,8 @@ export async function fetchForecast(lat: number, lon: number): Promise<ForecastR
     weatherCode: data.daily.weather_code[i],
     tempMax: data.daily.temperature_2m_max[i],
     tempMin: data.daily.temperature_2m_min[i],
-    precipitationSum: data.daily.precipitation_sum[i] || 0,
     precipitationProbabilityMax: data.daily.precipitation_probability_max?.[i] || 0,
     windSpeedMax: data.daily.wind_speed_10m_max[i],
-    windGustsMax: data.daily.wind_gusts_10m_max[i] || data.daily.wind_speed_10m_max[i] * 1.4,
-    windDirectionDominant: data.daily.wind_direction_10m_dominant[i],
     uvIndexMax: data.daily.uv_index_max[i],
   }));
 
