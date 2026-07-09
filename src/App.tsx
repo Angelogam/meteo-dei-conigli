@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo, useCallback } from "react";
+import React, { useEffect, useState, useMemo, useCallback } from "react";
 import { DECOLLI } from "@/data/launchSites";
 import { fetchMeteoCompleta } from "@/utils/api";
 import { getWeatherIcon } from "@/utils/meteo";
