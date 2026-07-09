@@ -1,9 +1,17 @@
 import * as React from "react";
 
-import type { ToastActionElement, ToastProps } from "@/components/ui/toast";
-
 const TOAST_LIMIT = 1;
 const TOAST_REMOVE_DELAY = 1000000;
+
+type ToastProps = {
+  variant?: "default" | "destructive";
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+};
+
+type ToastActionElement = React.ReactElement<{
+  altText: string;
+}>;
 
 type ToasterToast = ToastProps & {
   id: string;
@@ -12,7 +20,7 @@ type ToasterToast = ToastProps & {
   action?: ToastActionElement;
 };
 
-const _actionTypes = {
+const actionTypes = {
   ADD_TOAST: "ADD_TOAST",
   UPDATE_TOAST: "UPDATE_TOAST",
   DISMISS_TOAST: "DISMISS_TOAST",
@@ -26,7 +34,7 @@ function genId() {
   return count.toString();
 }
 
-type ActionType = typeof _actionTypes;
+type ActionType = typeof actionTypes;
 
 type Action =
   | {
@@ -87,8 +95,6 @@ export const reducer = (state: State, action: Action): State => {
     case "DISMISS_TOAST": {
       const { toastId } = action;
 
-      // ! Side effects ! - This could be extracted into a dismissToast() action,
-      // but I'll keep it here for simplicity
       if (toastId) {
         addToRemoveQueue(toastId);
       } else {
