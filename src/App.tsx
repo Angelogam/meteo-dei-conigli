@@ -54,13 +54,20 @@ export default function App() {
   const site = DECOLLI.find(x => x.id === sel)!;
 
   useEffect(() => {
-    setLoading(true); setErr(null);
+    const controller = new AbortController();
+    setLoading(true);
+    setErr(null);
     const lat = site.lat, lon = site.lon;
-    fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&hourly=temperature_2m,dewpoint_2m,relativehumidity_2m,cloudcover,precipitation,visibility,wind_speed_10m,wind_gusts_10m,wind_direction_10m,wind_speed_80m,wind_direction_80m,wind_speed_120m,wind_direction_120m,uv_index,is_day,weathercode,pressure_msl&daily=weathercode,temperature_2m_max,temperature_2m_min,sunrise,sunset,uv_index_max,precipitation_sum,precipitation_hours,wind_speed_10m_max,wind_direction_10m_dominant&timezone=auto&forecast_days=3`)
-      .then(r => r.ok ? r.json() : Promise.reject("HTTP " + r.status))
-      .then(d => setData(d))
-      .catch(e => { setErr("Errore caricamento meteo"); console.error(e); })
-      .finally(() => setLoading(false));
+    fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&hourly=temperature_2m,dewpoint_2m,relativehumidity_2m,cloudcover,precipitation,visibility,wind_speed_10m,wind_gusts_10m,wind_direction_10m,wind_speed_80m,wind_direction_80m,wind_speed_120m,wind_direction_120m,uv_index,is_day,weathercode,pressure_msl&daily=weathercode,temperature_2m_max,temperature_2m_min,sunrise,sunset,uv_index_max,precipitation_sum,precipitation_hours,wind_speed_10m_max,wind_direction_10m_dominant&timezone=auto&forecast_days=3`, { signal: controller.signal })
+      .then(r => r.ok ? r.json() : Promise.reject(new Error("HTTP " + r.status)))
+      .then(d => { setData(d); })
+      .catch(e => {
+        if (e instanceof Error && e.name === "AbortError") return;
+        setErr("Errore caricamento meteo. Controlla la connessione e riprova.");
+        console.error(e);
+      })
+      .finally(() => { if (!controller.signal.aborted) setLoading(false); });
+    return () => controller.abort();
   }, [sel]);
 
   const parseDay = (offset: number) => {
@@ -113,26 +120,43 @@ export default function App() {
     };
   }
 
-  if (loading) return <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "100vh", background: "#0a0e27", color: "#eee" }}><div style={{ width: 50, height: 50, border: "4px solid rgba(255,255,255,0.1)", borderTopColor: "#ff6b6b", borderRadius: "50%", animation: "spin 1s linear infinite" }}></div><p style={{ marginTop: 20, fontSize: "1.2rem" }}>Caricamento previsioni...</p></div>;
-  if (err) return <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "100vh", background: "#0a0e27", color: "#eee" }}><p style={{ color: "#ff6b6b", fontSize: "1.2rem", marginBottom: 20 }}>{err}</p><button onClick={() => window.location.reload()} style={{ background: "#ff6b6b", color: "#fff", border: "none", padding: "12px 30px", borderRadius: 8, cursor: "pointer", fontWeight: 600 }}>Riprova</button></div>;
+  if (loading) return <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "100vh", background: "#0a0e27", color: "#eee" }}><div style={{ width: 50, height: 50, border: "4px solid rgba(255,255,255,0.1)", borderTopColor: "#39d6c5", borderRadius: "50%", animation: "spin 1s linear infinite" }}></div><p style={{ marginTop: 20, fontSize: "1.2rem" }}>Caricamento previsioni...</p></div>;
+  if (err) return <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "100vh", background: "#0a0e27", color: "#eee" }}><p style={{ color: "#39d6c5", fontSize: "1.2rem", marginBottom: 20 }}>{err}</p><button onClick={() => window.location.reload()} style={{ background: "#39d6c5", color: "#fff", border: "none", padding: "12px 30px", borderRadius: 8, cursor: "pointer", fontWeight: 600 }}>Riprova</button></div>;
 
   return (
     <div style={{ background: "#0a0e27", color: "#eee", minHeight: "100vh", padding: 20, fontFamily: "'Segoe UI',Arial,sans-serif" }}>
-      <style>{`@keyframes spin{to{transform:rotate(360deg)}}@keyframes hop{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}@keyframes float{0%,100%{transform:translateY(0)rotate(-2deg)}50%{transform:translateY(-10px)rotate(2deg)}}::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:rgba(255,255,255,.05)}::-webkit-scrollbar-thumb{background:rgba(255,255,255,.15);border-radius:2px}`}</style>
+      <style>{`@keyframes spin{to{transform:rotate(360deg)}}@keyframes hop{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}@keyframes float{0%,100%{transform:translateY(0)rotate(-2deg)}50%{transform:translateY(-10px)rotate(2deg)}}::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:rgba(255,255,255,.05)}::-webkit-scrollbar-thumb{background:rgba(255,255,255,.15);border-radius:2px}
+        #root > div > div { grid-template-columns: minmax(260px,320px) minmax(0,1fr); }
+        #root button, #root input { max-width: 100%; }
+        @media (max-width: 900px) {
+          #root > div { padding: 12px !important; }
+          #root > div > div { grid-template-columns: minmax(0,1fr) !important; gap: 12px !important; }
+          #root > div > div > div:first-child { height: auto !important; max-height: 300px; }
+          #root > div > div > div:first-child > div { max-height: 220px; }
+          #root > div > div > div:last-child { max-height: none !important; overflow: visible !important; padding: 14px !important; }
+        }
+        @media (max-width: 560px) {
+          #root header h1 { font-size: 1.7rem !important; }
+          #root header { margin-bottom: 16px !important; padding: 12px 0 !important; }
+          #root > div > div > div:last-child > div[style*="repeat(4, 1fr)"] { grid-template-columns: repeat(2,minmax(0,1fr)) !important; }
+          #root > div > div > div:last-child > div[style*="repeat(3, 1fr)"] { grid-template-columns: repeat(2,minmax(0,1fr)) !important; }
+          #root > div > div > div:last-child > div[style*="repeat(11, 1fr)"] { grid-template-columns: repeat(11,minmax(48px,1fr)) !important; overflow-x: auto !important; }
+          #root button { touch-action: manipulation; }
+        }`}</style>
       <header style={{ textAlign: "center", marginBottom: 30, padding: "20px 0", borderBottom: "1px solid rgba(255,255,255,0.1)" }}>
         <div style={{ display: "flex", justifyContent: "center", gap: 15, marginBottom: 10 }}>
           <span style={{ fontSize: "2.5rem", animation: "hop 1s ease-in-out infinite" }}>🐰</span>
           <span style={{ fontSize: "2rem", animation: "float 2s ease-in-out infinite" }}>🪂</span>
         </div>
-        <h1 style={{ fontSize: "2.2rem", marginBottom: 5, background: "linear-gradient(135deg, #ff6b6b, #ffd93d)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", fontWeight: 800 }}>Meteo dei Conigli</h1>
+        <h1 style={{ fontSize: "2.2rem", marginBottom: 5, background: "linear-gradient(135deg, #39d6c5, #ffd93d)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", fontWeight: 800 }}>Meteo dei Conigli</h1>
         <p style={{ fontSize: "0.9rem", color: "#888" }}>Previsioni volo libero • Open-Meteo</p>
       </header>
       <div style={{ display: "grid", gridTemplateColumns: "320px 1fr", gap: 20, maxWidth: 1400, margin: "0 auto" }}>
         <div style={{ background: "rgba(255,255,255,0.05)", padding: 15, borderRadius: 15, border: "1px solid rgba(255,255,255,0.1)", height: "calc(100vh - 200px)", overflow: "hidden" }}>
-          <h2 style={{ fontSize: "1.1rem", marginBottom: 15, color: "#ff6b6b", fontWeight: 600 }}>📍 Decolli</h2>
+          <h2 style={{ fontSize: "1.1rem", marginBottom: 15, color: "#39d6c5", fontWeight: 600 }}>📍 Decolli</h2>
           <div style={{ overflowY: "auto", height: "calc(100% - 50px)", paddingRight: 5 }}>
             {DECOLLI.map(d => (
-              <button key={d.id} onClick={() => { setSel(d.id); setDayIdx(0); setHour(12); }} style={{ width: "100%", textAlign: "left", cursor: "pointer", transition: "all 0.3s ease", background: d.id === sel ? "rgba(255,107,107,0.15)" : "rgba(255,255,255,0.03)", border: `1px solid ${d.id === sel ? "#ff6b6b" : "rgba(255,255,255,0.1)"}`, borderRadius: 10, padding: 12, marginBottom: 8, color: "#fff" }}>
+              <button key={d.id} onClick={() => { setSel(d.id); setDayIdx(0); setHour(12); }} style={{ width: "100%", textAlign: "left", cursor: "pointer", transition: "all 0.3s ease", background: d.id === sel ? "rgba(57,214,197,0.15)" : "rgba(255,255,255,0.03)", border: `1px solid ${d.id === sel ? "#39d6c5" : "rgba(255,255,255,0.1)"}`, borderRadius: 10, padding: 12, marginBottom: 8, color: "#fff" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}><span style={{ fontSize: "0.95rem", fontWeight: "bold" }}>{d.name}</span></div>
                 <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}><span style={{ fontSize: "0.75rem", color: "#888" }}>{d.valley}</span><span style={{ fontSize: "0.75rem", color: "#888" }}>{d.exposure}</span></div>
                 <span style={{ fontSize: "0.65rem", padding: "2px 8px", borderRadius: 12, color: "#fff", fontWeight: 600, background: d.difficulty <= 2 ? "#4caf50" : d.difficulty <= 3 ? "#ff9800" : "#f44336" }}>{d.difficulty <= 2 ? "Facile" : d.difficulty <= 3 ? "Medio" : "Difficile"}</span>
@@ -148,21 +172,21 @@ export default function App() {
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10, marginBottom: 15 }}>
               {enriched.map((day: any, i: number) => (
-                <button key={i} onClick={() => { setDayIdx(i); setHour(12); }} style={{ background: dayIdx === i ? "rgba(255,107,107,0.2)" : "rgba(255,255,255,0.05)", border: `1px solid ${dayIdx === i ? "#ff6b6b" : "rgba(255,255,255,0.1)"}`, borderRadius: 10, padding: 10, cursor: "pointer", textAlign: "center", color: "#fff", transition: "all 0.3s ease" }}>
+                <button key={i} onClick={() => { setDayIdx(i); setHour(12); }} style={{ background: dayIdx === i ? "rgba(57,214,197,0.2)" : "rgba(255,255,255,0.05)", border: `1px solid ${dayIdx === i ? "#39d6c5" : "rgba(255,255,255,0.1)"}`, borderRadius: 10, padding: 10, cursor: "pointer", textAlign: "center", color: "#fff", transition: "all 0.3s ease" }}>
                   <div style={{ fontSize: "0.85rem", fontWeight: "bold" }}>{day.date.toLocaleDateString("it-IT", { weekday: "short", day: "numeric", month: "short" })}</div>
                   <div style={{ fontSize: "1.5rem", marginTop: 2 }}>{wi(day.wcode, 1)}</div>
-                  <div style={{ fontSize: "1rem", color: "#ff6b6b", marginTop: 4 }}>{Math.round(day.tmax)}°/{Math.round(day.tmin)}°</div>
+                  <div style={{ fontSize: "1rem", color: "#39d6c5", marginTop: 4 }}>{Math.round(day.tmax)}°/{Math.round(day.tmin)}°</div>
                   <div style={{ fontSize: "0.7rem", color: "#888" }}>Δ{day.dd}°C</div>
                 </button>
               ))}
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 15, marginBottom: 15, padding: "10px 15px", background: "rgba(255,255,255,0.05)", borderRadius: 10 }}>
               <label style={{ fontSize: "0.85rem", color: "#888" }}>⏰ Ora:</label>
-              <input type="range" min={9} max={19} value={hour} onChange={e => setHour(parseInt(e.target.value))} style={{ flex: 1, accentColor: "#ff6b6b" }} />
+              <input type="range" min={9} max={19} value={hour} onChange={e => setHour(parseInt(e.target.value))} style={{ flex: 1, accentColor: "#39d6c5" }} />
               <span style={{ fontSize: "0.85rem", fontWeight: "bold", color: "#fff", minWidth: 50 }}>{String(hour).padStart(2, "0")}:00</span>
             </div>
-            {ai && <div style={{ marginBottom: 20, background: "rgba(0,0,0,0.3)", borderRadius: 12, border: "1px solid rgba(255,107,107,0.2)", overflow: "hidden" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 15px", background: "rgba(255,107,107,0.1)", borderBottom: "1px solid rgba(255,107,107,0.2)" }}><span style={{ fontSize: "1.5rem" }}>🤖</span><h3 style={{ fontSize: "1rem", color: "#ff6b6b", margin: 0, fontWeight: 600 }}>Analisi AI della Giornata</h3></div>
+            {ai && <div style={{ marginBottom: 20, background: "rgba(0,0,0,0.3)", borderRadius: 12, border: "1px solid rgba(57,214,197,0.2)", overflow: "hidden" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 15px", background: "rgba(57,214,197,0.1)", borderBottom: "1px solid rgba(57,214,197,0.2)" }}><span style={{ fontSize: "1.5rem" }}>🤖</span><h3 style={{ fontSize: "1rem", color: "#39d6c5", margin: 0, fontWeight: 600 }}>Analisi AI della Giornata</h3></div>
               <div style={{ padding: "15px" }}>
                 {[{ t: "📋 Panoramica", c: "#4fc3f7", v: ai.general }, { t: "🔥 Termiche", c: "#4fc3f7", v: ai.thermal }, { t: "💨 Vento", c: "#4fc3f7", v: ai.wind }, { t: "💡 Consigli", c: "#ffd93d", v: ai.advice }].map(s => (
                   <div key={s.t} style={{ marginBottom: 12, padding: "10px 15px", background: "rgba(255,255,255,0.05)", borderRadius: 8 }}>
@@ -202,7 +226,7 @@ export default function App() {
                     <div style={{ fontSize: "0.7rem", color: "#888", marginBottom: 4 }}>{c.l}</div>
                     <div style={{ fontSize: "1rem", fontWeight: "bold", color: "#fff" }}>{c.w != null ? `${wa(c.d!)} ${Math.round(c.w)} km/h` : "N/D"}</div>
                     <div style={{ fontSize: "0.75rem", color: "#aaa" }}>{c.d != null ? wd(c.d) : "--"}</div>
-                    <div style={{ fontSize: "0.65rem", color: "#ff6b6b", marginTop: 2 }}>⚡ {c.g ? `${Math.round(c.g)} km/h` : "--"}</div>
+                    <div style={{ fontSize: "0.65rem", color: "#39d6c5", marginTop: 2 }}>⚡ {c.g ? `${Math.round(c.g)} km/h` : "--"}</div>
                   </div>
                 ))}
               </div>
