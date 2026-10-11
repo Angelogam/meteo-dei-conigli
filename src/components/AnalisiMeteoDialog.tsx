@@ -20,8 +20,13 @@ import {
   getWeatherIcon,
   type WeatherData,
 } from "@/lib/meteo";
-import { getWindCondition } from "@/lib/volo";
-import type { Metadata } from "@/lib/volo";
+type Metadata = { lat?: number; lon?: number };
+
+function getWindCondition(speed: number): { type: "buono" | "attenzione" | "pericoloso"; label: string } {
+  if (speed <= 15) return { type: "buono", label: "Vento moderato" };
+  if (speed <= 25) return { type: "attenzione", label: "Vento sostenuto" };
+  return { type: "pericoloso", label: "Vento forte" };
+}
 
 interface AnalisiMeteoDialogProps {
   open: boolean;
